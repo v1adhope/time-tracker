@@ -1,6 +1,6 @@
 # Docs
 
-- migration
+- migration (postgres)
 - config.env
 - swagger
 
@@ -17,8 +17,8 @@ User
 
 ```js
 {
-    "startTime": "some start time"
-    "endTime": "some end time"
+    "createdAt": "some start time"
+    "finishedAt": "some end time"
 }
 ```
 Task
