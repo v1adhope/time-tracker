@@ -22,3 +22,11 @@ func (u *UserUsecase) Create(ctx context.Context, user entities.User) (entities.
 
 	return user, nil
 }
+
+func (u *UserUsecase) Delete(ctx context.Context, id string) error {
+	if err := u.userRepo.Delete(ctx, id); err != nil {
+		return err
+	}
+
+	return nil
+}

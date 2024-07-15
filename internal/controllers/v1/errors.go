@@ -10,6 +10,7 @@ import (
 )
 
 // var ErrNotValidData = errors.New("Not valid data")
+// var ErrNoID = errors.New("missing id")
 
 func setBindError(c *gin.Context, err error) {
 	c.Error(err).SetType(gin.ErrorTypeBind)
@@ -25,27 +26,30 @@ func abortWithStatusMSG(c *gin.Context, code int, msg string) {
 	})
 }
 
-// TODO: logger, kind of bind errors
+// TODO: logger, kinds of bind errors
 func errorHandler(c *gin.Context) {
 	c.Next()
 
 	for _, ginErr := range c.Errors {
-		if ginErr.IsType(gin.ErrorTypeBind) {
+		switch ginErr.Type {
+		case gin.ErrorTypeBind:
 			log.Print("ErrNotValidData")
 			abortWithStatusMSG(c, http.StatusBadRequest, ginErr.Err.Error())
 			return
-		}
-
-		if ginErr.IsType(gin.ErrorTypeAny) {
+		case gin.ErrorTypeAny:
 			switch {
 			case errors.Is(ginErr.Err, entities.ErrorUserHasAlreadyExist):
 				log.Print("ErrorUserHasAlreadyExist")
 				abortWithStatusMSG(c, http.StatusBadRequest, entities.ErrorUserHasAlreadyExist.Error())
 				return
+			case errors.Is(ginErr.Err, entities.ErrorUserDoesNotExist):
+				log.Print("ErrorUserDoesNotExist")
+				abortWithStatusMSG(c, http.StatusNoContent, entities.ErrorUserDoesNotExist.Error())
+				return
 			}
 		}
 
-		log.Print("something went wrong")
+		log.Printf("something went wrong: %s", ginErr.Err.Error())
 		c.AbortWithStatus(http.StatusTeapot)
 		return
 	}

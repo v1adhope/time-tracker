@@ -48,3 +48,25 @@ func (r *UserRepo) Create(ctx context.Context, user entities.User) (entities.Use
 
 	return user, nil
 }
+
+func (r *UserRepo) Delete(ctx context.Context, id string) error {
+	valuesByColumns := squirrel.Eq{
+		"user_id": id,
+	}
+
+	sql, args, err := r.Driver.Builder.Delete("users").Where(valuesByColumns).ToSql()
+	if err != nil {
+		return fmt.Errorf("repositories: delete: tosql: %w", err)
+	}
+
+	tag, err := r.Driver.Pool.Exec(ctx, sql, args...)
+	if err != nil {
+		return fmt.Errorf("repositories: delete: exec: %w", err)
+	}
+
+	if tag.RowsAffected() == 0 {
+		return entities.ErrorUserDoesNotExist
+	}
+
+	return nil
+}

@@ -17,6 +17,7 @@ func handleUser(router *UserRouter) {
 	users := router.handler.Group("/users")
 	{
 		users.POST("/", router.Create)
+		users.DELETE("/:id", router.Delete)
 	}
 }
 
@@ -49,4 +50,24 @@ func (r *UserRouter) Create(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, user)
+}
+
+type deleteUserReqParams struct {
+	ID string `uri:"id" binding:"required,uuid"`
+}
+
+func (r *UserRouter) Delete(c *gin.Context) {
+	params := deleteUserReqParams{}
+
+	if err := c.ShouldBindUri(&params); err != nil {
+		setBindError(c, err)
+		return
+	}
+
+	if err := r.userUsecase.Delete(c.Request.Context(), params.ID); err != nil {
+		setAnyError(c, err)
+		return
+	}
+
+	c.Status(http.StatusOK)
 }
