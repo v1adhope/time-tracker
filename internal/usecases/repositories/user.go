@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/Masterminds/squirrel"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/v1adhope/time-tracker/internal/entities"
 	"github.com/v1adhope/time-tracker/pkg/postgresql"
@@ -102,7 +104,8 @@ func (r *UserRepo) Update(ctx context.Context, user entities.User) error {
 
 	sql, args, err := r.Driver.Builder.Update("users").
 		Where(whereStatement).
-		SetMap(valuesByColumns).ToSql()
+		SetMap(valuesByColumns).
+		ToSql()
 	if err != nil {
 		return fmt.Errorf("repositories: update: tosql: %w", err)
 	}
@@ -117,4 +120,120 @@ func (r *UserRepo) Update(ctx context.Context, user entities.User) error {
 	}
 
 	return nil
+}
+
+func (r *UserRepo) GetAll(ctx context.Context, representation entities.UserRepresentation) ([]entities.User, error) {
+	sql, args, err := r.Driver.Builder.Select("user_id", "surname", "name", "patronymic", "address", "passport_number").
+		From("users").
+		Where(r.buildGetAllWhereStatementFilter(representation.Filter)).
+		Limit(setLimitStatement(representation.Pagination.Limit)).
+		Offset(setOffsetStatement(representation.Pagination.Offset)).
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("repositories: getall: tosql: %w", err)
+	}
+
+	rows, err := r.Driver.Pool.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, fmt.Errorf("repositories: getall: query: %w", err)
+	}
+
+	users := make([]entities.User, 0)
+	user := entities.User{}
+
+	_, err = pgx.ForEachRow(rows, []any{&user.ID, &user.Surname, &user.Name, &user.Patronymic, &user.Address, &user.PassportNumber}, func() error {
+		users = append(users, user)
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("repositories: getall: forEachRow: %w", err)
+	}
+
+	return users, nil
+}
+
+func (r *UserRepo) buildGetAllWhereStatementFilter(filter entities.UserFilter) squirrel.And {
+	statement := squirrel.And{}
+
+	if filter.BySurname != "" {
+		parts := strings.Split(filter.BySurname, ":")
+
+		if isOperationEq(parts[0]) {
+			statement = append(statement, squirrel.Eq{
+				"surname": parts[1],
+			})
+		}
+
+		if isOperationIlike(parts[0]) {
+			statement = append(statement, squirrel.ILike{
+				"surname": fmt.Sprintf("%%%s%%", parts[1]),
+			})
+		}
+	}
+
+	if filter.ByName != "" {
+		parts := strings.Split(filter.ByName, ":")
+
+		if isOperationEq(parts[0]) {
+			statement = append(statement, squirrel.Eq{
+				"name": parts[1],
+			})
+		}
+
+		if isOperationIlike(parts[0]) {
+			statement = append(statement, squirrel.ILike{
+				"name": fmt.Sprintf("%%%s%%", parts[1]),
+			})
+		}
+	}
+
+	if filter.ByPatronymic != "" {
+		parts := strings.Split(filter.ByPatronymic, ":")
+
+		if isOperationEq(parts[0]) {
+			statement = append(statement, squirrel.Eq{
+				"patronymic": parts[1],
+			})
+		}
+
+		if isOperationIlike(parts[0]) {
+			statement = append(statement, squirrel.ILike{
+				"patronymic": fmt.Sprintf("%%%s%%", parts[1]),
+			})
+		}
+	}
+
+	if filter.ByAddress != "" {
+		parts := strings.Split(filter.ByAddress, ":")
+
+		if isOperationEq(parts[0]) {
+			statement = append(statement, squirrel.Eq{
+				"address": parts[1],
+			})
+		}
+
+		if isOperationIlike(parts[0]) {
+			statement = append(statement, squirrel.ILike{
+				"address": fmt.Sprintf("%%%s%%", parts[1]),
+			})
+		}
+	}
+
+	if filter.ByPassportNumber != "" {
+		parts := strings.Split(filter.ByPassportNumber, ":")
+
+		if isOperationEq(parts[0]) {
+			statement = append(statement, squirrel.Eq{
+				"passport_number": parts[1],
+			})
+		}
+
+		if isOperationIlike(parts[0]) {
+			statement = append(statement, squirrel.ILike{
+				"passport_number": fmt.Sprintf("%%%s%%", parts[1]),
+			})
+		}
+	}
+
+	return statement
 }

@@ -19,6 +19,7 @@ func handleUser(router *UserRouter) {
 		users.POST("/", router.Create)
 		users.DELETE("/:id", router.Delete)
 		users.PATCH("/:id", router.Update)
+		users.GET("/", router.All)
 	}
 }
 
@@ -113,4 +114,45 @@ func (r *UserRouter) Update(c *gin.Context) {
 	}
 
 	c.Status(http.StatusOK)
+}
+
+type allUserQuery struct {
+	Surname        string `form:"surname" binding:"omitempty,filterstring"`
+	Name           string `form:"name" binding:"omitempty,filterstring"`
+	Patronymic     string `form:"patronymic" binding:"omitempty,filterstring"`
+	Address        string `form:"address" binding:"omitempty,filterstring"`
+	PassportNumber string `form:"passportNumber" binding:"omitempty,filterstring"`
+
+	Limit  string `form:"limit" binding:"omitempty,number"`
+	Offset string `form:"offset" binding:"omitempty,number"`
+}
+
+func (r *UserRouter) All(c *gin.Context) {
+
+	query := allUserQuery{}
+
+	if err := c.ShouldBindQuery(&query); err != nil {
+		setBindError(c, err)
+		return
+	}
+
+	users, err := r.userUsecase.GetAll(c.Request.Context(), entities.UserRepresentation{
+		Pagination: entities.UserPagination{
+			Limit:  query.Limit,
+			Offset: query.Offset,
+		},
+		Filter: entities.UserFilter{
+			BySurname:        query.Surname,
+			ByName:           query.Name,
+			ByPatronymic:     query.Patronymic,
+			ByAddress:        query.Address,
+			ByPassportNumber: query.PassportNumber,
+		},
+	})
+	if err != nil {
+		setAnyError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, users)
 }

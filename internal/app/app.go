@@ -38,6 +38,10 @@ func Run() error {
 
 	handler := gin.New()
 
+	if err := v1.RegisterCustomValidations(); err != nil {
+		return err
+	}
+
 	v1.Handle(&v1.Router{
 		Handler:  handler,
 		Usecases: usecases,

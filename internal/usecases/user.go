@@ -38,3 +38,12 @@ func (u *UserUsecase) Update(ctx context.Context, user entities.User) error {
 
 	return nil
 }
+
+func (u *UserUsecase) GetAll(ctx context.Context, representation entities.UserRepresentation) ([]entities.User, error) {
+	users, err := u.userRepo.GetAll(ctx, representation)
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
