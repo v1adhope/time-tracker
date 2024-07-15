@@ -44,7 +44,7 @@ func errorHandler(c *gin.Context) {
 				return
 			case errors.Is(ginErr.Err, entities.ErrorUserDoesNotExist):
 				log.Print("ErrorUserDoesNotExist")
-				abortWithStatusMSG(c, http.StatusNoContent, entities.ErrorUserDoesNotExist.Error())
+				c.AbortWithStatus(http.StatusNoContent)
 				return
 			}
 		}

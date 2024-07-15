@@ -18,6 +18,7 @@ func handleUser(router *UserRouter) {
 	{
 		users.POST("/", router.Create)
 		users.DELETE("/:id", router.Delete)
+		users.PATCH("/:id", router.Update)
 	}
 }
 
@@ -65,6 +66,48 @@ func (r *UserRouter) Delete(c *gin.Context) {
 	}
 
 	if err := r.userUsecase.Delete(c.Request.Context(), params.ID); err != nil {
+		setAnyError(c, err)
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
+type updateUserReqParams struct {
+	ID string `uri:"id" binding:"required,uuid"`
+}
+
+type updateUserReq struct {
+	Surname        string `json:"surname"`
+	Name           string `json:"name"`
+	Patronymic     string `json:"patronymic"`
+	Address        string `json:"address"`
+	PassportNumber string `json:"passportNumber" binding:"len=9"`
+}
+
+func (r *UserRouter) Update(c *gin.Context) {
+	params := updateUserReqParams{}
+
+	if err := c.ShouldBindUri(&params); err != nil {
+		setBindError(c, err)
+		return
+	}
+
+	req := updateUserReq{}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		setBindError(c, err)
+		return
+	}
+
+	if err := r.userUsecase.Update(c.Request.Context(), entities.User{
+		ID:             params.ID,
+		Surname:        req.Surname,
+		Name:           req.Name,
+		Patronymic:     req.Patronymic,
+		Address:        req.Address,
+		PassportNumber: req.PassportNumber,
+	}); err != nil {
 		setAnyError(c, err)
 		return
 	}

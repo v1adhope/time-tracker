@@ -30,3 +30,11 @@ func (u *UserUsecase) Delete(ctx context.Context, id string) error {
 
 	return nil
 }
+
+func (u *UserUsecase) Update(ctx context.Context, user entities.User) error {
+	if err := u.userRepo.Update(ctx, user); err != nil {
+		return err
+	}
+
+	return nil
+}

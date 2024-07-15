@@ -50,11 +50,13 @@ func (r *UserRepo) Create(ctx context.Context, user entities.User) (entities.Use
 }
 
 func (r *UserRepo) Delete(ctx context.Context, id string) error {
-	valuesByColumns := squirrel.Eq{
+	whereStatement := squirrel.Eq{
 		"user_id": id,
 	}
 
-	sql, args, err := r.Driver.Builder.Delete("users").Where(valuesByColumns).ToSql()
+	sql, args, err := r.Driver.Builder.Delete("users").
+		Where(whereStatement).
+		ToSql()
 	if err != nil {
 		return fmt.Errorf("repositories: delete: tosql: %w", err)
 	}
@@ -64,7 +66,53 @@ func (r *UserRepo) Delete(ctx context.Context, id string) error {
 		return fmt.Errorf("repositories: delete: exec: %w", err)
 	}
 
-	if tag.RowsAffected() == 0 {
+	if tag.RowsAffected() != 1 {
+		return entities.ErrorUserDoesNotExist
+	}
+
+	return nil
+}
+
+func (r *UserRepo) Update(ctx context.Context, user entities.User) error {
+	whereStatement := squirrel.Eq{
+		"user_id": user.ID,
+	}
+
+	valuesByColumns := squirrel.Eq{}
+
+	if user.Surname != "" {
+		valuesByColumns["surname"] = user.Surname
+	}
+
+	if user.Name != "" {
+		valuesByColumns["name"] = user.Name
+	}
+
+	if user.Patronymic != "" {
+		valuesByColumns["patronymic"] = user.Patronymic
+	}
+
+	if user.Address != "" {
+		valuesByColumns["address"] = user.Address
+	}
+
+	if user.PassportNumber != "" {
+		valuesByColumns["passport_number"] = user.PassportNumber
+	}
+
+	sql, args, err := r.Driver.Builder.Update("users").
+		Where(whereStatement).
+		SetMap(valuesByColumns).ToSql()
+	if err != nil {
+		return fmt.Errorf("repositories: update: tosql: %w", err)
+	}
+
+	tag, err := r.Driver.Pool.Exec(ctx, sql, args...)
+	if err != nil {
+		return fmt.Errorf("repositories: update: exec: %w", err)
+	}
+
+	if tag.RowsAffected() != 1 {
 		return entities.ErrorUserDoesNotExist
 	}
 
