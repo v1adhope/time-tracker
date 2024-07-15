@@ -43,7 +43,7 @@ create table if not EXISTS users (
   name varchar(255) not null,
   patronymic varchar(255) not null,
   address varchar(255) not null,
-  passportNumber varchar(255) not null,
+  passport_number varchar(255) not null unique,
 
   constraint pk_users_user_id primary key(user_id)
 );
@@ -52,6 +52,8 @@ create table if not exists tasks (
   task_id uuid default uuid6(),
   created_at timestamp default now() not null,
   finished_at timestamp not null,
+  user_id uuid,
 
-  constraint pk_tasks_task_id primary key(task_id)
+  constraint pk_tasks_task_id primary key(task_id),
+  constraint fk_tasks_users_user_id foreign key(user_id) references users(user_id) on delete cascade
 );

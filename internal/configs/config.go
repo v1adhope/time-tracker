@@ -6,11 +6,13 @@ import (
 	"github.com/knadh/koanf/parsers/dotenv"
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/v2"
+	"github.com/v1adhope/time-tracker/pkg/httpserver"
 	"github.com/v1adhope/time-tracker/pkg/postgresql"
 )
 
 type Config struct {
 	Postgres postgresql.Config
+	Server   httpserver.Config
 }
 
 func Build() (*Config, error) {
@@ -23,7 +25,11 @@ func Build() (*Config, error) {
 	var cfg Config
 
 	if err := k.Unmarshal("", &cfg.Postgres); err != nil {
-		return nil, fmt.Errorf("config unmarshal: %w", err)
+		return nil, fmt.Errorf("config unmarshal: postgres: %w", err)
+	}
+
+	if err := k.Unmarshal("", &cfg.Server); err != nil {
+		return nil, fmt.Errorf("config unmarshal: server: %w", err)
 	}
 
 	return &cfg, nil

@@ -12,12 +12,13 @@ import (
 )
 
 type Config struct {
-	User     string `koanf:"APP_POSTGRES_USER"`
-	Password string `koanf:"APP_POSTGRES_PASSWORD"`
-	Host     string `koanf:"APP_POSTGRES_HOST"`
-	Port     string `koanf:"APP_POSTGRES_PORT"`
-	DBName   string `koanf:"APP_POSTGRES_DB_NAME"`
-	Query    string `koanf:"APP_POSTGRES_QUERY"`
+	User        string `koanf:"APP_POSTGRES_USER"`
+	Password    string `koanf:"APP_POSTGRES_PASSWORD"`
+	Host        string `koanf:"APP_POSTGRES_HOST"`
+	Port        string `koanf:"APP_POSTGRES_PORT"`
+	DBName      string `koanf:"APP_POSTGRES_DB_NAME"`
+	Query       string `koanf:"APP_POSTGRES_QUERY"`
+	WithMigrate bool   `koanf:"APP_POSTGRES_WITH_MIGRATION"`
 }
 
 type Postgres struct {

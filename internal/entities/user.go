@@ -1,7 +1,7 @@
-package entity
+package entities
 
 type User struct {
-	ID             string `json:"-"`
+	ID             string `json:"id"`
 	Surname        string `json:"surname"`
 	Name           string `json:"name"`
 	Patronymic     string `json:"patronymic"`

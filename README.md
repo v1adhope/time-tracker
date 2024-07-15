@@ -3,6 +3,7 @@
 - migration (postgres)
 - config.env
 - swagger
+- logger (debug, info)
 
 ```js
 {

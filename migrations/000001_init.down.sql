@@ -1,2 +1,2 @@
-drop table if exists users;
-drop table if exists tasks;
+drop table if exists users cascade;
+drop table if exists tasks cascade;
