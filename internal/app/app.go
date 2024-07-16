@@ -9,42 +9,44 @@ import (
 	"github.com/v1adhope/time-tracker/internal/usecases"
 	"github.com/v1adhope/time-tracker/internal/usecases/repositories"
 	"github.com/v1adhope/time-tracker/pkg/httpserver"
+	"github.com/v1adhope/time-tracker/pkg/logger"
 	"github.com/v1adhope/time-tracker/pkg/postgresql"
 )
 
-func Run() error {
+func Run(cfg *configs.Config, log logger.Logger) error {
 	mainCtx := context.Background()
-
-	cfg, err := configs.Build()
-	if err != nil {
-		return err
-	}
 
 	postgres, err := postgresql.Build(mainCtx, cfg.Postgres)
 	if err != nil {
 		return err
 	}
 	defer postgres.Close()
+	log.Info("postgres driver was succsesfully up")
 
 	if cfg.Postgres.WithMigrate {
 		if err := postgres.Migrate(); err != nil {
 			return err
 		}
+		log.Info("postgres migration was succeeded")
 	}
+
+	gin.SetMode(cfg.Gin.Mode)
 
 	repos := repositories.New(postgres)
 
 	usecases := usecases.New(repos)
 
-	handler := gin.New()
-
 	if err := v1.RegisterCustomValidations(); err != nil {
 		return err
 	}
+	log.Info("custom validation rules was connected")
+
+	handler := gin.New()
 
 	v1.Handle(&v1.Router{
 		Handler:  handler,
 		Usecases: usecases,
+		Logger:   log,
 	})
 
 	httpserver.New(handler, &cfg.Server).Run()

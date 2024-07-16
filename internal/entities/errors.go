@@ -3,9 +3,9 @@ package entities
 import "errors"
 
 var (
-	ErrorUserHasAlreadyExist = errors.New("User has already exist")
-	ErrorUserDoesNotExist    = errors.New("User doesn't exist")
+	ErrorUserHasAlreadyExist = errors.New("user has already exist")
+	ErrorUserDoesNotExist    = errors.New("user doesn't exist")
 
-	ErrorTaskDoesNotExist      = errors.New("Task doesn't exist")
-	ErrorNoAnyTasksForThisUser = errors.New("No any tasks for this user")
+	ErrorTaskDoesNotExist      = errors.New("task doesn't exist")
+	ErrorNoAnyTasksForThisUser = errors.New("no any tasks for this user")
 )

@@ -4,10 +4,19 @@ import (
 	"log"
 
 	"github.com/v1adhope/time-tracker/internal/app"
+	"github.com/v1adhope/time-tracker/internal/configs"
+	"github.com/v1adhope/time-tracker/pkg/logger"
 )
 
 func main() {
-	if err := app.Run(); err != nil {
+	cfg, err := configs.Build()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	appLog := logger.New(cfg.Logger.LogLevel)
+
+	if err := app.Run(cfg, appLog); err != nil {
 		log.Fatal(err)
 	}
 }
