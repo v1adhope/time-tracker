@@ -42,8 +42,8 @@ func errorHandler(c *gin.Context) {
 				log.Print("ErrorUserHasAlreadyExist")
 				abortWithStatusMSG(c, http.StatusBadRequest, entities.ErrorUserHasAlreadyExist.Error())
 				return
-			case errors.Is(ginErr.Err, entities.ErrorUserDoesNotExist):
-				log.Print("ErrorUserDoesNotExist")
+			case errors.Is(ginErr.Err, entities.ErrorUserDoesNotExist), errors.Is(ginErr.Err, entities.ErrorTaskDoesNotExist):
+				log.Print("ErrorUserDoesNotExist or ErrorTaskDoesNotExist")
 				c.AbortWithStatus(http.StatusNoContent)
 				return
 			}

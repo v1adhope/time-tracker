@@ -50,7 +50,7 @@ create table if not EXISTS users (
 
 create table if not exists tasks (
   task_id uuid default uuid6(),
-  created_at timestamp default now() not null,
+  created_at timestamp not null,
   finished_at timestamp,
   user_id uuid,
 

@@ -52,7 +52,7 @@ Body
 
 ## POST /tasks/start/:userId
 
-## PATCH /tasks/end/:userId
+## PATCH /tasks/end/:id
 
 ---
 ## GET /info?passportSeries=value&passportNumber=value

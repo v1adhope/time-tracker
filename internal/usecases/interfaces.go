@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"context"
+	"time"
 
 	"github.com/v1adhope/time-tracker/internal/entities"
 )
@@ -22,8 +23,10 @@ type UserRepo interface {
 
 type Task interface {
 	Start(ctx context.Context, userID string) (entities.Task, error)
+	End(ctx context.Context, id string) (time.Time, error)
 }
 
 type TaskRepo interface {
 	Create(ctx context.Context, userID string) (entities.Task, error)
+	SetFinishedAt(ctx context.Context, id string) (time.Time, error)
 }
