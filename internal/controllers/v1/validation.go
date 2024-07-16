@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
@@ -16,7 +17,11 @@ func RegisterCustomValidations() error {
 	}
 
 	if err := v.RegisterValidation("filterstring", filterString); err != nil {
-		return fmt.Errorf("v1: registerCustomValidations: registerValidation: %w", err)
+		return fmt.Errorf("v1: registerCustomValidations: registerValidation: filterString: %w", err)
+	}
+
+	if err := v.RegisterValidation("sorttime", sortTime); err != nil {
+		return fmt.Errorf("v1: registerCustomValidations: registerValidation: sortTime: %w", err)
 	}
 
 	return nil
@@ -30,6 +35,15 @@ func filterString(fl validator.FieldLevel) bool {
 	}
 
 	if parts[0] != "eq" && parts[0] != "ilike" {
+		return false
+	}
+
+	return true
+}
+
+func sortTime(fl validator.FieldLevel) bool {
+	_, err := time.Parse(time.RFC3339, fl.Field().String())
+	if err != nil {
 		return false
 	}
 

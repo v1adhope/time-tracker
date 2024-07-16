@@ -125,7 +125,7 @@ func (r *UserRepo) Update(ctx context.Context, user entities.User) error {
 func (r *UserRepo) GetAll(ctx context.Context, representation entities.UserRepresentation) ([]entities.User, error) {
 	sql, args, err := r.Driver.Builder.Select("user_id", "surname", "name", "patronymic", "address", "passport_number").
 		From("users").
-		Where(r.buildGetAllWhereStatementFilter(representation.Filter)).
+		Where(r.buildGetAllWhereFilterStatement(representation.Filter)).
 		Limit(setLimitStatement(representation.Pagination.Limit)).
 		Offset(setOffsetStatement(representation.Pagination.Offset)).
 		ToSql()
@@ -152,7 +152,7 @@ func (r *UserRepo) GetAll(ctx context.Context, representation entities.UserRepre
 	return users, nil
 }
 
-func (r *UserRepo) buildGetAllWhereStatementFilter(filter entities.UserFilter) squirrel.And {
+func (r *UserRepo) buildGetAllWhereFilterStatement(filter entities.UserFilter) squirrel.And {
 	statement := squirrel.And{}
 
 	if filter.BySurname != "" {

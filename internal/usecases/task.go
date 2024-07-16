@@ -2,7 +2,6 @@ package usecases
 
 import (
 	"context"
-	"time"
 
 	"github.com/v1adhope/time-tracker/internal/entities"
 )
@@ -24,11 +23,20 @@ func (u *TaskUsecase) Start(ctx context.Context, userID string) (entities.Task, 
 	return task, nil
 }
 
-func (u *TaskUsecase) End(ctx context.Context, id string) (time.Time, error) {
+func (u *TaskUsecase) End(ctx context.Context, id string) (string, error) {
 	finishedAt, err := u.TaskRepo.SetFinishedAt(ctx, id)
 	if err != nil {
-		return time.Time{}, err
+		return "", err
 	}
 
 	return finishedAt, nil
+}
+
+func (u *TaskUsecase) GetReportSummaryTime(ctx context.Context, userID string, sort entities.TaskSort) ([]entities.TaskSummary, error) {
+	tasks, err := u.TaskRepo.GetReportSummaryTime(ctx, userID, sort)
+	if err != nil {
+		return nil, err
+	}
+
+	return tasks, nil
 }

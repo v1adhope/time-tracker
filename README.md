@@ -45,7 +45,7 @@ Body
 
 ## DELETE /users/:userId
 
-## GET /tasks/time-summary/:userId
+## GET /tasks/summary-time/:userId
 
 - time range sort
 - Desc sort

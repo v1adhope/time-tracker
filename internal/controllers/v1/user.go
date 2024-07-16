@@ -128,7 +128,6 @@ type allUserQuery struct {
 }
 
 func (r *userRouter) All(c *gin.Context) {
-
 	query := allUserQuery{}
 
 	if err := c.ShouldBindQuery(&query); err != nil {
