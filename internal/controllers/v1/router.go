@@ -17,9 +17,13 @@ func Handle(router *Router) {
 
 	v1.Use(errorHandler)
 	{
-		handleUser(&UserRouter{
+		handleUser(&userRouter{
 			handler:     v1,
 			userUsecase: router.Usecases.User,
+		})
+		handleTask(&taskRouter{
+			handler:     v1,
+			taskUsecase: router.Usecases.Task,
 		})
 	}
 }

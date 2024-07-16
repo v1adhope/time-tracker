@@ -17,8 +17,8 @@ type UserRepo struct {
 	Driver *postgresql.Postgres
 }
 
-func NewUser(driver *postgresql.Postgres) *UserRepo {
-	return &UserRepo{driver}
+func NewUser(d *postgresql.Postgres) *UserRepo {
+	return &UserRepo{d}
 }
 
 func (r *UserRepo) Create(ctx context.Context, user entities.User) (entities.User, error) {
@@ -35,7 +35,7 @@ func (r *UserRepo) Create(ctx context.Context, user entities.User) (entities.Use
 		Suffix("returning \"user_id\"").
 		ToSql()
 	if err != nil {
-		return entities.User{}, fmt.Errorf("repositories: create: tosql: %w", err)
+		return entities.User{}, fmt.Errorf("repositories: user: create: tosql: %w", err)
 	}
 
 	if err := r.Driver.Pool.QueryRow(ctx, sql, args...).Scan(&user.ID); err != nil {
@@ -45,7 +45,7 @@ func (r *UserRepo) Create(ctx context.Context, user entities.User) (entities.Use
 			return entities.User{}, entities.ErrorUserHasAlreadyExist
 		}
 
-		return entities.User{}, fmt.Errorf("repositories: create: queryrow: %w", err)
+		return entities.User{}, fmt.Errorf("repositories: user: create: queryrow: %w", err)
 	}
 
 	return user, nil
@@ -60,12 +60,12 @@ func (r *UserRepo) Delete(ctx context.Context, id string) error {
 		Where(whereStatement).
 		ToSql()
 	if err != nil {
-		return fmt.Errorf("repositories: delete: tosql: %w", err)
+		return fmt.Errorf("repositories: user: delete: tosql: %w", err)
 	}
 
 	tag, err := r.Driver.Pool.Exec(ctx, sql, args...)
 	if err != nil {
-		return fmt.Errorf("repositories: delete: exec: %w", err)
+		return fmt.Errorf("repositories: user: delete: exec: %w", err)
 	}
 
 	if tag.RowsAffected() != 1 {
@@ -107,12 +107,12 @@ func (r *UserRepo) Update(ctx context.Context, user entities.User) error {
 		SetMap(valuesByColumns).
 		ToSql()
 	if err != nil {
-		return fmt.Errorf("repositories: update: tosql: %w", err)
+		return fmt.Errorf("repositories: user: update: tosql: %w", err)
 	}
 
 	tag, err := r.Driver.Pool.Exec(ctx, sql, args...)
 	if err != nil {
-		return fmt.Errorf("repositories: update: exec: %w", err)
+		return fmt.Errorf("repositories: user: update: exec: %w", err)
 	}
 
 	if tag.RowsAffected() != 1 {
@@ -130,12 +130,12 @@ func (r *UserRepo) GetAll(ctx context.Context, representation entities.UserRepre
 		Offset(setOffsetStatement(representation.Pagination.Offset)).
 		ToSql()
 	if err != nil {
-		return nil, fmt.Errorf("repositories: getall: tosql: %w", err)
+		return nil, fmt.Errorf("repositories: user: getall: tosql: %w", err)
 	}
 
 	rows, err := r.Driver.Pool.Query(ctx, sql, args...)
 	if err != nil {
-		return nil, fmt.Errorf("repositories: getall: query: %w", err)
+		return nil, fmt.Errorf("repositories: user: getall: query: %w", err)
 	}
 
 	users := make([]entities.User, 0)
@@ -146,7 +146,7 @@ func (r *UserRepo) GetAll(ctx context.Context, representation entities.UserRepre
 		return nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("repositories: getall: forEachRow: %w", err)
+		return nil, fmt.Errorf("repositories: user: getall: forEachRow: %w", err)
 	}
 
 	return users, nil

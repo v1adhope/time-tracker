@@ -8,12 +8,12 @@ import (
 	"github.com/v1adhope/time-tracker/internal/usecases"
 )
 
-type UserRouter struct {
+type userRouter struct {
 	handler     *gin.RouterGroup
 	userUsecase usecases.User
 }
 
-func handleUser(router *UserRouter) {
+func handleUser(router *userRouter) {
 	users := router.handler.Group("/users")
 	{
 		users.POST("/", router.Create)
@@ -31,7 +31,7 @@ type createUserReq struct {
 	PassportNumber string `json:"passportNumber" binding:"required,len=9"`
 }
 
-func (r *UserRouter) Create(c *gin.Context) {
+func (r *userRouter) Create(c *gin.Context) {
 	req := createUserReq{}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -58,7 +58,7 @@ type deleteUserReqParams struct {
 	ID string `uri:"id" binding:"required,uuid"`
 }
 
-func (r *UserRouter) Delete(c *gin.Context) {
+func (r *userRouter) Delete(c *gin.Context) {
 	params := deleteUserReqParams{}
 
 	if err := c.ShouldBindUri(&params); err != nil {
@@ -86,7 +86,7 @@ type updateUserReq struct {
 	PassportNumber string `json:"passportNumber" binding:"len=9"`
 }
 
-func (r *UserRouter) Update(c *gin.Context) {
+func (r *userRouter) Update(c *gin.Context) {
 	params := updateUserReqParams{}
 
 	if err := c.ShouldBindUri(&params); err != nil {
@@ -127,7 +127,7 @@ type allUserQuery struct {
 	Offset string `form:"offset" binding:"omitempty,number"`
 }
 
-func (r *UserRouter) All(c *gin.Context) {
+func (r *userRouter) All(c *gin.Context) {
 
 	query := allUserQuery{}
 

@@ -19,3 +19,11 @@ type UserRepo interface {
 	Update(ctx context.Context, user entities.User) error
 	GetAll(ctx context.Context, representation entities.UserRepresentation) ([]entities.User, error)
 }
+
+type Task interface {
+	Start(ctx context.Context, userID string) (entities.Task, error)
+}
+
+type TaskRepo interface {
+	Create(ctx context.Context, userID string) (entities.Task, error)
+}

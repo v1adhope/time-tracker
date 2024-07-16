@@ -50,7 +50,7 @@ Body
 - time range sort
 - Desc sort
 
-## PATCH /tasks/start/:userId
+## POST /tasks/start/:userId
 
 ## PATCH /tasks/end/:userId
 
