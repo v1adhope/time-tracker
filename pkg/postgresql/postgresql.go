@@ -55,8 +55,8 @@ func (p *Postgres) Close() {
 	p.Pool.Close()
 }
 
-func (p *Postgres) Migrate() error {
-	m, err := migrate.New("file://migrations", p.Pool.Config().ConnString())
+func (p *Postgres) Migrate(path string) error {
+	m, err := migrate.New(fmt.Sprintf("file://%s", path), p.Pool.Config().ConnString())
 	if err != nil {
 		return fmt.Errorf("postgresql: migrate: new: %w", err)
 	}

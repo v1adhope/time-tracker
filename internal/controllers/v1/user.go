@@ -30,7 +30,7 @@ type createUserReq struct {
 	Name           string `json:"name" binding:"required" example:"Rogers"`
 	Patronymic     string `json:"patronymic" binding:"required" example:"Robertovich"`
 	Address        string `json:"address" binding:"required" example:"1123 Ola Brook"`
-	PassportNumber string `json:"passportNumber" binding:"required,len=11" example:"6666 666666"`
+	PassportNumber string `json:"passportNumber" binding:"required,passport" example:"6666 666666"`
 }
 
 // @tags users
@@ -101,7 +101,7 @@ type updateUserReq struct {
 	Name           string `json:"name" example:"Nicholas"`
 	Patronymic     string `json:"patronymic" example:"Victorovich"`
 	Address        string `json:"address" example:"516 Carlee Statio"`
-	PassportNumber string `json:"passportNumber" binding:"len=11" example:"7777 777777"`
+	PassportNumber string `json:"passportNumber" binding:"passport" example:"7777 777777"`
 }
 
 // @tags users
@@ -155,8 +155,6 @@ type allUserQuery struct {
 	Offset string `form:"offset" binding:"omitempty,number"`
 }
 
-// TODO: handle zero return values
-
 // @tags users
 // @summary Get all users
 // @param limit query uint64 false "Pagination control"
@@ -166,6 +164,7 @@ type allUserQuery struct {
 // @param address query string false "Custom type consitst operation:value. Allowed operations eq, ilike"
 // @param passportNumber query string false "Custom type consitst operation:value. Allowed operations eq, ilike"
 // @response 200
+// @response 204 "No any users by this request"
 // @response 400
 // @response 500
 // @router /users [get]

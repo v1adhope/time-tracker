@@ -42,7 +42,7 @@ func (r *UserRepo) Create(ctx context.Context, user entities.User) (entities.Use
 		var pgErr *pgconn.PgError
 
 		if errors.As(err, &pgErr) && pgErr.ConstraintName == "users_passport_number_key" {
-			return entities.User{}, entities.ErrorUserHasAlreadyExist
+			return entities.User{}, entities.ErrorUserHasAlreadyExistWithThatPassport
 		}
 
 		return entities.User{}, fmt.Errorf("repositories: user: create: queryrow: %w", err)
@@ -69,7 +69,7 @@ func (r *UserRepo) Delete(ctx context.Context, id string) error {
 	}
 
 	if tag.RowsAffected() != 1 {
-		return entities.ErrorUserDoesNotExist
+		return entities.ErrorUsersDoesNotExist
 	}
 
 	return nil
@@ -112,11 +112,17 @@ func (r *UserRepo) Update(ctx context.Context, user entities.User) error {
 
 	tag, err := r.Driver.Pool.Exec(ctx, sql, args...)
 	if err != nil {
+		var pgErr *pgconn.PgError
+
+		if errors.As(err, &pgErr) && pgErr.ConstraintName == "users_passport_number_key" {
+			return entities.ErrorUserHasAlreadyExistWithThatPassport
+		}
+
 		return fmt.Errorf("repositories: user: update: exec: %w", err)
 	}
 
 	if tag.RowsAffected() != 1 {
-		return entities.ErrorUserDoesNotExist
+		return entities.ErrorUsersDoesNotExist
 	}
 
 	return nil
@@ -147,6 +153,10 @@ func (r *UserRepo) GetAll(ctx context.Context, representation entities.UserRepre
 	})
 	if err != nil {
 		return nil, fmt.Errorf("repositories: user: getall: forEachRow: %w", err)
+	}
+
+	if len(users) == 0 {
+		return nil, entities.ErrorUsersDoesNotExist
 	}
 
 	return users, nil
@@ -255,7 +265,7 @@ func (r *UserRepo) Get(ctx context.Context, passportNumber string) (entities.Use
 
 	if err := r.Driver.Pool.QueryRow(ctx, sql, args...).Scan(&user.Surname, &user.Name, &user.Patronymic, &user.Address); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return entities.User{}, entities.ErrorUserDoesNotExistInfoExeption
+			return entities.User{}, entities.ErrorUserDoesNotExistWithThatPassportInfoExeption
 		}
 
 		return entities.User{}, fmt.Errorf("repositories: user: get: queryRow: %w", err)

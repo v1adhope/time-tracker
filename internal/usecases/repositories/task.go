@@ -46,7 +46,7 @@ func (r *TaskRepo) Create(ctx context.Context, userID string) (entities.Task, er
 		var pgErr *pgconn.PgError
 
 		if errors.As(err, &pgErr) && pgErr.ConstraintName == "fk_tasks_users_user_id" {
-			return entities.Task{}, entities.ErrorUserDoesNotExist
+			return entities.Task{}, entities.ErrorUsersDoesNotExist
 		}
 
 		return entities.Task{}, fmt.Errorf("repositories: task: create: queryRow: %w", err)

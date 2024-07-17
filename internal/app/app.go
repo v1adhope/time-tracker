@@ -24,7 +24,7 @@ func Run(cfg *configs.Config, log logger.Logger) error {
 	log.Info("postgres driver was succsesfully up")
 
 	if cfg.Postgres.WithMigrate {
-		if err := postgres.Migrate(); err != nil {
+		if err := postgres.Migrate("migrations"); err != nil {
 			return err
 		}
 		log.Info("postgres migration was succeeded")

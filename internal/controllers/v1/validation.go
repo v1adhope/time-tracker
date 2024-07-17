@@ -3,6 +3,7 @@ package v1
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -21,6 +22,10 @@ func RegisterCustomValidations() error {
 	}
 
 	if err := v.RegisterValidation("sorttime", sortTime); err != nil {
+		return fmt.Errorf("v1: registerCustomValidations: registerValidation: sortTime: %w", err)
+	}
+
+	if err := v.RegisterValidation("passport", passport); err != nil {
 		return fmt.Errorf("v1: registerCustomValidations: registerValidation: sortTime: %w", err)
 	}
 
@@ -45,6 +50,28 @@ func sortTime(fl validator.FieldLevel) bool {
 	_, err := time.Parse(time.RFC3339, fl.Field().String())
 	if err != nil {
 		return false
+	}
+
+	return true
+}
+
+func passport(fl validator.FieldLevel) bool {
+	field := fl.Field().String()
+
+	if len(field) != 11 {
+		return false
+	}
+
+	parts := strings.Split(field, " ")
+	if len(parts) != 2 {
+		return false
+	}
+
+	for _, part := range parts {
+		_, err := strconv.ParseInt(part, 10, 32)
+		if err != nil {
+			return false
+		}
 	}
 
 	return true

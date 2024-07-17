@@ -14,8 +14,4 @@ APP_POSTGRES_WITH_MIGRATION=true
 Use `.env` for migration
 
 ---
-## GET /info?passportSeries=value&passportNumber=value
-
-req 200, 400, 500
-
-After add ???
+- [ ] TODO: might be created root path for config and migration

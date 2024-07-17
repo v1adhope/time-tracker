@@ -35,18 +35,18 @@ func errorHandler(log logger.Logger) gin.HandlerFunc {
 				return
 			case gin.ErrorTypeAny:
 				switch {
-				case errors.Is(ginErr.Err, entities.ErrorUserHasAlreadyExist):
+				case errors.Is(ginErr.Err, entities.ErrorUserHasAlreadyExistWithThatPassport):
 					log.Debug(ginErr.Err)
 					abortWithStatusMSG(c, http.StatusBadRequest, ginErr.Err.Error())
 					return
-				case errors.Is(ginErr.Err, entities.ErrorUserDoesNotExist),
+				case errors.Is(ginErr.Err, entities.ErrorUsersDoesNotExist),
 					errors.Is(ginErr.Err, entities.ErrorTaskDoesNotExist),
 					errors.Is(ginErr.Err, entities.ErrorNoAnyTasksForThisUser):
 
 					log.Debug(ginErr.Err)
 					c.AbortWithStatus(http.StatusNoContent)
 					return
-				case errors.Is(ginErr.Err, entities.ErrorUserDoesNotExistInfoExeption):
+				case errors.Is(ginErr.Err, entities.ErrorUserDoesNotExistWithThatPassportInfoExeption):
 					log.Debug(ginErr.Err)
 					abortWithStatusMSG(c, http.StatusBadRequest, ginErr.Err.Error())
 				}

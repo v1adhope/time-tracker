@@ -19,10 +19,10 @@ type Config struct {
 	Gin      v1.Config
 }
 
-func Build() (*Config, error) {
+func Build(path string) (*Config, error) {
 	k := koanf.New(".")
 
-	if err := k.Load(file.Provider(".env"), dotenv.Parser()); err != nil {
+	if err := k.Load(file.Provider(path), dotenv.Parser()); err != nil {
 		return nil, fmt.Errorf("config load: %w", err)
 	}
 

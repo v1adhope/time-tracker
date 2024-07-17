@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	cfg, err := configs.Build()
+	cfg, err := configs.Build(".env")
 	if err != nil {
 		log.Fatal(err)
 	}
