@@ -47,3 +47,12 @@ func (u *UserUsecase) GetAll(ctx context.Context, representation entities.UserRe
 
 	return users, nil
 }
+
+func (u *UserUsecase) Get(ctx context.Context, passportNumber string) (entities.User, error) {
+	user, err := u.userRepo.Get(ctx, passportNumber)
+	if err != nil {
+		return entities.User{}, err
+	}
+
+	return user, nil
+}

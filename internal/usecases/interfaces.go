@@ -11,6 +11,7 @@ type User interface {
 	Delete(ctx context.Context, id string) error
 	Update(ctx context.Context, user entities.User) error
 	GetAll(ctx context.Context, representation entities.UserRepresentation) ([]entities.User, error)
+	Get(ctx context.Context, passportNumber string) (entities.User, error)
 }
 
 type UserRepo interface {
@@ -18,6 +19,7 @@ type UserRepo interface {
 	Delete(ctx context.Context, id string) error
 	Update(ctx context.Context, user entities.User) error
 	GetAll(ctx context.Context, representation entities.UserRepresentation) ([]entities.User, error)
+	Get(ctx context.Context, passportNumber string) (entities.User, error)
 }
 
 type Task interface {

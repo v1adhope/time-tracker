@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -20,6 +21,7 @@ func handleUser(router *userRouter) {
 		users.DELETE("/:id", router.Delete)
 		users.PATCH("/:id", router.Update)
 		users.GET("/", router.All)
+		users.GET("/info", router.Info)
 	}
 }
 
@@ -28,7 +30,7 @@ type createUserReq struct {
 	Name           string `json:"name" binding:"required" example:"Rogers"`
 	Patronymic     string `json:"patronymic" binding:"required" example:"Robertovich"`
 	Address        string `json:"address" binding:"required" example:"1123 Ola Brook"`
-	PassportNumber string `json:"passportNumber" binding:"required,len=9" example:"66 666666"`
+	PassportNumber string `json:"passportNumber" binding:"required,len=11" example:"6666 666666"`
 }
 
 // @tags users
@@ -99,7 +101,7 @@ type updateUserReq struct {
 	Name           string `json:"name" example:"Nicholas"`
 	Patronymic     string `json:"patronymic" example:"Victorovich"`
 	Address        string `json:"address" example:"516 Carlee Statio"`
-	PassportNumber string `json:"passportNumber" binding:"len=9" example:"77 777777"`
+	PassportNumber string `json:"passportNumber" binding:"len=11" example:"7777 777777"`
 }
 
 // @tags users
@@ -194,4 +196,36 @@ func (r *userRouter) All(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, users)
+}
+
+type infoUserQuery struct {
+	PassportSeries string `form:"passportSeries" binding:"required,len=4"`
+	PassportNumber string `form:"passportNumber" binding:"required,len=6"`
+}
+
+// @tags users
+// @summary Info endpoint
+// @param passportSeries query string true "Should be number len=4"
+// @param passportNumber query string true "Should be number len=6"
+// @response 200 "Consist empty user"
+// @response 400
+// @response 500
+// @router /users/info [get]
+func (r *userRouter) Info(c *gin.Context) {
+	query := infoUserQuery{}
+
+	if err := c.ShouldBindQuery(&query); err != nil {
+		setBindError(c, err)
+		return
+	}
+
+	passportField := fmt.Sprintf("%s %s", query.PassportSeries, query.PassportNumber)
+
+	user, err := r.userUsecase.Get(c.Request.Context(), passportField)
+	if err != nil {
+		setAnyError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
 }

@@ -2,6 +2,7 @@
 
 Auto generation docs with `https://pkg.go.dev/github.com/swaggo/gin-swagger#section-readme`
 
+---
 ```sh
 make run
 ```

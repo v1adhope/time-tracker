@@ -237,3 +237,29 @@ func (r *UserRepo) buildGetAllWhereFilterStatement(filter entities.UserFilter) s
 
 	return statement
 }
+
+func (r *UserRepo) Get(ctx context.Context, passportNumber string) (entities.User, error) {
+	whereStatement := squirrel.Eq{
+		"passport_number": passportNumber,
+	}
+
+	sql, args, err := r.Driver.Builder.Select("surname", "name", "patronymic", "address").
+		From("users").
+		Where(whereStatement).
+		ToSql()
+	if err != nil {
+		return entities.User{}, fmt.Errorf("repositories: user: get: tosql: %w", err)
+	}
+
+	user := entities.User{}
+
+	if err := r.Driver.Pool.QueryRow(ctx, sql, args...).Scan(&user.Surname, &user.Name, &user.Patronymic, &user.Address); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return entities.User{}, entities.ErrorUserDoesNotExistInfoExeption
+		}
+
+		return entities.User{}, fmt.Errorf("repositories: user: get: queryRow: %w", err)
+	}
+
+	return user, nil
+}

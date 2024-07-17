@@ -37,7 +37,7 @@ func errorHandler(log logger.Logger) gin.HandlerFunc {
 				switch {
 				case errors.Is(ginErr.Err, entities.ErrorUserHasAlreadyExist):
 					log.Debug(ginErr.Err)
-					abortWithStatusMSG(c, http.StatusBadRequest, entities.ErrorUserHasAlreadyExist.Error())
+					abortWithStatusMSG(c, http.StatusBadRequest, ginErr.Err.Error())
 					return
 				case errors.Is(ginErr.Err, entities.ErrorUserDoesNotExist),
 					errors.Is(ginErr.Err, entities.ErrorTaskDoesNotExist),
@@ -46,6 +46,9 @@ func errorHandler(log logger.Logger) gin.HandlerFunc {
 					log.Debug(ginErr.Err)
 					c.AbortWithStatus(http.StatusNoContent)
 					return
+				case errors.Is(ginErr.Err, entities.ErrorUserDoesNotExistInfoExeption):
+					log.Debug(ginErr.Err)
+					abortWithStatusMSG(c, http.StatusBadRequest, ginErr.Err.Error())
 				}
 			}
 

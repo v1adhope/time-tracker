@@ -94,6 +94,7 @@ type summaryTimeReqQuery struct {
 // @param startTime query string false "Range sorting. Accept RFC3339 format time"
 // @param endTime query string false "Range sorting. Accept RFC3339 format time"
 // @response 200
+// @response 204
 // @response 400
 // @response 500
 // @router /tasks/summary-time/{userId} [get]

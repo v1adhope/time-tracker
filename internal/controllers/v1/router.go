@@ -28,7 +28,7 @@ func Handle(router *Router) {
 	router.Handler.Use(gin.Recovery())
 
 	router.Handler.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	router.Log.Info("swagger available by this path /swagger/index.html")
+	router.Log.Info("swagger available by this address http://localhost:8081/swagger/index.html")
 
 	v1 := router.Handler.Group("/v1")
 

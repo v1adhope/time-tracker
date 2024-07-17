@@ -1,12 +1,12 @@
 package entities
 
 type User struct {
-	ID             string `json:"id"`
+	ID             string `json:"id,omitempty"`
 	Surname        string `json:"surname"`
 	Name           string `json:"name"`
 	Patronymic     string `json:"patronymic"`
 	Address        string `json:"address"`
-	PassportNumber string `json:"passportNumber"`
+	PassportNumber string `json:"passportNumber,omitempty"`
 }
 
 type UserPagination struct {
