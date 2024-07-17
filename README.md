@@ -1,58 +1,16 @@
-# Docs
+# Info
 
-- migration (postgres)
-- config.env
-- swagger
-- logger (debug, info)
+Auto generation docs with `https://pkg.go.dev/github.com/swaggo/gin-swagger#section-readme`
 
-```js
-{
-  "surname": "Иванов",
-  "name": "Иван",
-  "patronymic": "Иванович",
-  "address": "г. Москва, ул. Ленина, д. 5, кв. 1",
-  "passportNumber": "1234 567890" // ser space num
-}
+```sh
+make run
 ```
-User
+Usage
 
-```js
-{
-    "createdAt": "some start time"
-    "finishedAt": "some end time"
-}
+```Copy
+APP_POSTGRES_WITH_MIGRATION=true
 ```
-Task
-
-## GET /users
-
-- Filtering
-- Pagination
-
-## PUT /users
-
-```js
-// DATA
-```
-Body
-
-## PATCH /users/:userId
-
-```js
-// DATA
-```
-Body
-
-## DELETE /users/:userId
-
-## GET /tasks/summary-time/:userId
-
-- time range sort
-- Desc sort
-
-## POST /tasks/start/:userId
-
-## PATCH /tasks/end/:id
+Use `.env` for migration
 
 ---
 ## GET /info?passportSeries=value&passportNumber=value

@@ -46,7 +46,7 @@ func Run(cfg *configs.Config, log logger.Logger) error {
 	v1.Handle(&v1.Router{
 		Handler:  handler,
 		Usecases: usecases,
-		Logger:   log,
+		Log:      log,
 	})
 
 	httpserver.New(handler, &cfg.Server).Run()

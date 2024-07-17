@@ -26,6 +26,12 @@ type startTaskReqParams struct {
 	UserID string `uri:"userId" binding:"required,uuid"`
 }
 
+// @tags tasks
+// @summary Start task
+// @param userId path string true "User id (uuid)"
+// @response 201
+// @response 500
+// @router /tasks/start/{userId} [post]
 func (r *taskRouter) Start(c *gin.Context) {
 	params := startTaskReqParams{}
 
@@ -47,6 +53,13 @@ type endTaskReqParams struct {
 	ID string `uri:"id" binding:"required,uuid"`
 }
 
+// @tags tasks
+// @summary End task
+// @param id path string true "Task id (uuid)"
+// @response 200
+// @response 204
+// @response 500
+// @router /tasks/end/{id} [patch]
 func (r *taskRouter) End(c *gin.Context) {
 	params := endTaskReqParams{}
 
@@ -75,6 +88,15 @@ type summaryTimeReqQuery struct {
 	EndTime   string `form:"endTime" binding:"omitempty,sorttime"`
 }
 
+// @tags tasks
+// @summary Get summary time
+// @param userId path string true "User id (uuid)"
+// @param startTime query string false "Range sorting. Accept RFC3339 format time"
+// @param endTime query string false "Range sorting. Accept RFC3339 format time"
+// @response 200
+// @response 400
+// @response 500
+// @router /tasks/summary-time/{userId} [get]
 func (r *taskRouter) SummaryTime(c *gin.Context) {
 	params := summaryTimeReqParams{}
 

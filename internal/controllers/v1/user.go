@@ -24,13 +24,21 @@ func handleUser(router *userRouter) {
 }
 
 type createUserReq struct {
-	Surname        string `json:"surname" binding:"required"`
-	Name           string `json:"name" binding:"required"`
-	Patronymic     string `json:"patronymic" binding:"required"`
-	Address        string `json:"address" binding:"required"`
-	PassportNumber string `json:"passportNumber" binding:"required,len=9"`
+	Surname        string `json:"surname" binding:"required" example:"Bode"`
+	Name           string `json:"name" binding:"required" example:"Rogers"`
+	Patronymic     string `json:"patronymic" binding:"required" example:"Robertovich"`
+	Address        string `json:"address" binding:"required" example:"1123 Ola Brook"`
+	PassportNumber string `json:"passportNumber" binding:"required,len=9" example:"66 666666"`
 }
 
+// @tags users
+// @summary Create user
+// @accept json
+// @param user body createUserReq true "User request model"
+// @response 201 {object} entities.User
+// @response 400
+// @response 500
+// @router /users [post]
 func (r *userRouter) Create(c *gin.Context) {
 	req := createUserReq{}
 
@@ -58,6 +66,14 @@ type deleteUserReqParams struct {
 	ID string `uri:"id" binding:"required,uuid"`
 }
 
+// @tags users
+// @summary Delete user
+// @param id path string true "User id (uuid)"
+// @response 200
+// @response 204 "There's no user to delete"
+// @response 400
+// @response 500
+// @router /users/{id} [delete]
 func (r *userRouter) Delete(c *gin.Context) {
 	params := deleteUserReqParams{}
 
@@ -79,13 +95,23 @@ type updateUserReqParams struct {
 }
 
 type updateUserReq struct {
-	Surname        string `json:"surname"`
-	Name           string `json:"name"`
-	Patronymic     string `json:"patronymic"`
-	Address        string `json:"address"`
-	PassportNumber string `json:"passportNumber" binding:"len=9"`
+	Surname        string `json:"surname" example:"Wyman"`
+	Name           string `json:"name" example:"Nicholas"`
+	Patronymic     string `json:"patronymic" example:"Victorovich"`
+	Address        string `json:"address" example:"516 Carlee Statio"`
+	PassportNumber string `json:"passportNumber" binding:"len=9" example:"77 777777"`
 }
 
+// @tags users
+// @summary Update user
+// @param id path string true "User id (uuid)"
+// @accept json
+// @param user body updateUserReq true "User request model"
+// @response 200
+// @response 204 "There's no user to change"
+// @response 400
+// @response 500
+// @router /users/{id} [patch]
 func (r *userRouter) Update(c *gin.Context) {
 	params := updateUserReqParams{}
 
@@ -127,6 +153,20 @@ type allUserQuery struct {
 	Offset string `form:"offset" binding:"omitempty,number"`
 }
 
+// TODO: handle zero return values
+
+// @tags users
+// @summary Get all users
+// @param limit query uint64 false "Pagination control"
+// @param offset query uint64 false "Pagination control"
+// @param surname query string false "Custom type consitst operation:value. Allowed operations eq, ilike"
+// @param name query string false "Custom type consitst operation:value. Allowed operations eq, ilike"
+// @param address query string false "Custom type consitst operation:value. Allowed operations eq, ilike"
+// @param passportNumber query string false "Custom type consitst operation:value. Allowed operations eq, ilike"
+// @response 200
+// @response 400
+// @response 500
+// @router /users [get]
 func (r *userRouter) All(c *gin.Context) {
 	query := allUserQuery{}
 
