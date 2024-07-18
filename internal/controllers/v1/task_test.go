@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -148,9 +148,9 @@ func TestTaskSummaryTimePositive(t *testing.T) {
 	defer postgres.Close()
 
 	type input struct {
-		id string
-		// startTime string
-		// endTime   string
+		id        string
+		startTime string
+		endTime   string
 	}
 	type task struct {
 		CreatedAt   string `json:"createdAt"`
@@ -159,35 +159,144 @@ func TestTaskSummaryTimePositive(t *testing.T) {
 	}
 
 	testCases := []struct {
-		key         string
-		input       input
-		expectedLen int
+		key      string
+		input    input
+		expected []task
 	}{
 		{
-			key: "case 1",
+			key: "tasks' 4th user",
 			input: input{
 				id: getUserID(postgres, 3),
 			},
-			expectedLen: 5,
+			expected: []task{
+				{
+					CreatedAt: "2024-12-16T09:08:25Z",
+				},
+				{
+					CreatedAt: "2024-08-11T11:25:00Z",
+				},
+				{
+					CreatedAt:   "2024-03-11T11:25:00Z",
+					FinishedAt:  "2024-05-11T09:08:25Z",
+					SummaryTime: "1461h43m",
+				},
+				{
+					CreatedAt:   "2024-04-16T09:08:25Z",
+					FinishedAt:  "2024-05-16T09:08:25Z",
+					SummaryTime: "720h0m",
+				},
+				{
+					CreatedAt:   "2024-01-16T09:08:25Z",
+					FinishedAt:  "2024-01-16T16:10:00Z",
+					SummaryTime: "7h2m",
+				},
+			},
 		},
 		{
-			key: "case 2",
+			key: "tasks' 3rd user",
 			input: input{
 				id: getUserID(postgres, 2),
 			},
-			expectedLen: 4,
+			expected: []task{
+				{
+					CreatedAt:   "2024-03-16T00:08:25Z",
+					FinishedAt:  "2024-03-24T00:00:00Z",
+					SummaryTime: "191h52m",
+				},
+				{
+					CreatedAt:   "2024-05-18T11:00:00Z",
+					FinishedAt:  "2024-05-20T09:08:25Z",
+					SummaryTime: "46h8m",
+				},
+				{
+					CreatedAt:   "2024-01-16T07:00:25Z",
+					FinishedAt:  "2024-01-16T09:08:25Z",
+					SummaryTime: "2h8m",
+				},
+				{
+					CreatedAt:   "2024-11-16T07:08:25Z",
+					FinishedAt:  "2024-11-16T09:08:25Z",
+					SummaryTime: "2h0m",
+				},
+			},
 		},
 		{
-			key: "case 3",
+			key: "tasks' 5 user",
 			input: input{
 				id: getUserID(postgres, 4),
 			},
-			expectedLen: 2,
+			expected: []task{
+				{
+					CreatedAt: "2024-12-16T09:08:25Z",
+				},
+				{
+					CreatedAt: "2024-08-11T11:25:00Z",
+				},
+			},
+		},
+		{
+			key: "with start time",
+			input: input{
+				id:        getUserID(postgres, 3),
+				startTime: "2024-04-01T00:00:00Z",
+			},
+			expected: []task{
+				{
+					CreatedAt: "2024-12-16T09:08:25Z",
+				},
+				{
+					CreatedAt: "2024-08-11T11:25:00Z",
+				},
+				{
+					CreatedAt:   "2024-04-16T09:08:25Z",
+					FinishedAt:  "2024-05-16T09:08:25Z",
+					SummaryTime: "720h0m",
+				},
+			},
+		},
+		{
+			key: "with end time",
+			input: input{
+				id:      getUserID(postgres, 3),
+				endTime: "2024-05-12T00:00:00Z",
+			},
+			expected: []task{
+				{
+					CreatedAt:   "2024-03-11T11:25:00Z",
+					FinishedAt:  "2024-05-11T09:08:25Z",
+					SummaryTime: "1461h43m",
+				},
+				{
+					CreatedAt:   "2024-01-16T09:08:25Z",
+					FinishedAt:  "2024-01-16T16:10:00Z",
+					SummaryTime: "7h2m",
+				},
+			},
+		},
+		{
+			key: "with start and end time",
+			input: input{
+				id:        getUserID(postgres, 3),
+				startTime: "2024-02-01T00:00:00Z",
+				endTime:   "2024-05-12T00:00:00Z",
+			},
+			expected: []task{
+				{
+					CreatedAt:   "2024-03-11T11:25:00Z",
+					FinishedAt:  "2024-05-11T09:08:25Z",
+					SummaryTime: "1461h43m",
+				},
+			},
 		},
 	}
 
 	for _, tc := range testCases {
-		req, _ := http.NewRequest("GET", fmt.Sprintf("/v1/tasks/summary-time/%s", tc.input.id), nil)
+		query := url.Values{}
+
+		query.Set("startTime", tc.input.startTime)
+		query.Set("endTime", tc.input.endTime)
+
+		req, _ := http.NewRequest("GET", fmt.Sprintf("/v1/tasks/summary-time/%s?%s", tc.input.id, query.Encode()), nil)
 		recorder := httptest.NewRecorder()
 		handler.ServeHTTP(recorder, req)
 
@@ -195,20 +304,8 @@ func TestTaskSummaryTimePositive(t *testing.T) {
 
 		tasks := make([]task, 0)
 		json.NewDecoder(recorder.Body).Decode(&tasks)
-		assert.Equal(t, tc.expectedLen, len(tasks))
 
-		for _, task := range tasks {
-			startTime, err := time.Parse(time.RFC3339, task.CreatedAt)
-			assert.NoError(t, err, tc.key)
-
-			if task.FinishedAt != "" {
-				finishedTime, err := time.Parse(time.RFC3339, task.FinishedAt)
-				assert.NoError(t, err, tc.key)
-
-				diff := finishedTime.Sub(startTime)
-				assert.Equal(t, fmt.Sprintf("%dh%dm", int(diff.Hours()), int(diff.Minutes())), task.SummaryTime)
-			}
-		}
+		assert.Equal(t, tc.expected, tasks, tc.key)
 	}
 }
 
@@ -217,9 +314,9 @@ func TestTaskSummaryTimeNegative(t *testing.T) {
 	defer postgres.Close()
 
 	type input struct {
-		id string
-		// startTime string
-		// endTime   string
+		id        string
+		startTime string
+		endTime   string
 	}
 
 	testCases := []struct {
@@ -248,10 +345,40 @@ func TestTaskSummaryTimeNegative(t *testing.T) {
 			},
 			expectedCode: http.StatusBadRequest,
 		},
+		{
+			key: "miss start time",
+			input: input{
+				id:        getUserID(postgres, 3),
+				startTime: "2025-02-01T00:00:00Z",
+			},
+			expectedCode: http.StatusNoContent,
+		},
+		{
+			key: "miss end time",
+			input: input{
+				id:      getUserID(postgres, 3),
+				endTime: "2023-02-01T00:00:00Z",
+			},
+			expectedCode: http.StatusNoContent,
+		},
+		{
+			key: "miss start and end time",
+			input: input{
+				id:        getUserID(postgres, 3),
+				startTime: "2022-02-01T00:00:00Z",
+				endTime:   "2023-02-01T00:00:00Z",
+			},
+			expectedCode: http.StatusNoContent,
+		},
 	}
 
 	for _, tc := range testCases {
-		req, _ := http.NewRequest("GET", fmt.Sprintf("/v1/tasks/summary-time/%s", tc.input.id), nil)
+		query := url.Values{}
+
+		query.Set("startTime", tc.input.startTime)
+		query.Set("endTime", tc.input.endTime)
+
+		req, _ := http.NewRequest("GET", fmt.Sprintf("/v1/tasks/summary-time/%s?%s", tc.input.id, query.Encode()), nil)
 		recorder := httptest.NewRecorder()
 		handler.ServeHTTP(recorder, req)
 

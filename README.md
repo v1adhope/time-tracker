@@ -15,4 +15,3 @@ Use `.env` for migration
 
 ---
 - [ ] TODO: might created root path for config and migration
-- [ ] TODO: might changed seeder for test time tasks

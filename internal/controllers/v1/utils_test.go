@@ -7,7 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/v1adhope/time-tracker/internal/configs"
 	v1 "github.com/v1adhope/time-tracker/internal/controllers/v1"
-	"github.com/v1adhope/time-tracker/internal/entities"
 	"github.com/v1adhope/time-tracker/internal/usecases"
 	"github.com/v1adhope/time-tracker/internal/usecases/repositories"
 	"github.com/v1adhope/time-tracker/pkg/logger"
@@ -33,7 +32,7 @@ func prepare() (*postgresql.Postgres, *gin.Engine) {
 
 	repos := repositories.New(postgres)
 
-	seeding(mainCtx, repos)
+	seeding(mainCtx, postgres)
 
 	usecases := usecases.New(repos)
 
@@ -52,67 +51,34 @@ func prepare() (*postgresql.Postgres, *gin.Engine) {
 	return postgres, handler
 }
 
-func seeding(ctx context.Context, repos *repositories.Repos) {
-	users := []entities.User{
-		{
-			Surname:        "Funk",
-			Name:           "Theresia",
-			Patronymic:     "Cummerata-Thompson",
-			Address:        "53636 Gabrielle Mount",
-			PassportNumber: "3333 333333",
-		},
-		{
-			Surname:        "Runolfsdottir",
-			Name:           "Violette",
-			Patronymic:     "Johns",
-			Address:        "52265 Parker Crossroad",
-			PassportNumber: "3333 666666",
-		},
-		{
-			Surname:        "McCullough",
-			Name:           "Jessie",
-			Patronymic:     "Waelchi",
-			Address:        "8020 Dach Pine",
-			PassportNumber: "3333 444444",
-		},
-		{
-			Surname:        "Rippin",
-			Name:           "Katrine",
-			Patronymic:     "Block",
-			Address:        "985 N Jefferson Street",
-			PassportNumber: "5555 124041",
-		},
-		{
-			Surname:        "Schulist",
-			Name:           "Kailee",
-			Patronymic:     "Fritsch",
-			Address:        "5303 Church View",
-			PassportNumber: "2515 692797",
-		},
-	}
+func seeding(ctx context.Context, postgres *postgresql.Postgres) {
+	sql, args, _ := postgres.Builder.Insert("users").
+		Columns("surname", "name", "patronymic", "address", "passport_number").
+		Values("Funk", "Theresia", "Cummerata-Thompson", "53636 Gabrielle Mount", "3333 333333").
+		Values("Runolfsdottir", "Violette", "Johns", "52265 Parker Crossroad", "3333 666666").
+		Values("McCullough", "Jessie", "Waelchi", "8020 Dach Pine", "3333 444444").
+		Values("Rippin", "Katrine", "Block", "985 N Jefferson Street", "5555 124041").
+		Values("Schulist", "Kailee", "Fritsch", "5303 Church View", "2515 692797").
+		ToSql()
 
-	for no, user := range users {
-		userWithID, _ := repos.User.Create(ctx, user)
-		users[no].ID = userWithID.ID
-	}
+	postgres.Pool.Exec(ctx, sql, args...)
 
-	for i := 0; i < 3; i++ {
-		task, _ := repos.Task.Create(ctx, users[3].ID)
-		repos.Task.SetFinishedAt(ctx, task.ID)
-	}
+	sql, args, _ = postgres.Builder.Insert("tasks").
+		Columns("created_at", "finished_at", "user_id").
+		Values("2024-01-16T09:08:25Z", "2024-01-16T16:10:00Z", getUserID(postgres, 3)).
+		Values("2024-03-11T11:25:00Z", "2024-05-11T09:08:25Z", getUserID(postgres, 3)).
+		Values("2024-04-16T09:08:25Z", "2024-05-16T09:08:25Z", getUserID(postgres, 3)).
+		Values("2024-12-16T09:08:25Z", nil, getUserID(postgres, 3)).
+		Values("2024-08-11T11:25:00Z", nil, getUserID(postgres, 3)).
+		Values("2024-11-16T07:08:25Z", "2024-11-16T09:08:25Z", getUserID(postgres, 2)).
+		Values("2024-05-18T11:00:00Z", "2024-05-20T09:08:25Z", getUserID(postgres, 2)).
+		Values("2024-01-16T07:00:25Z", "2024-01-16T09:08:25Z", getUserID(postgres, 2)).
+		Values("2024-03-16T00:08:25Z", "2024-03-24T00:00:00Z", getUserID(postgres, 2)).
+		Values("2024-12-16T09:08:25Z", nil, getUserID(postgres, 4)).
+		Values("2024-08-11T11:25:00Z", nil, getUserID(postgres, 4)).
+		ToSql()
 
-	for i := 0; i < 2; i++ {
-		repos.Task.Create(ctx, users[3].ID)
-	}
-
-	for i := 0; i < 4; i++ {
-		task, _ := repos.Task.Create(ctx, users[2].ID)
-		repos.Task.SetFinishedAt(ctx, task.ID)
-	}
-
-	for i := 0; i < 2; i++ {
-		repos.Task.Create(ctx, users[4].ID)
-	}
+	postgres.Pool.Exec(ctx, sql, args...)
 }
 
 func getID(driver *postgresql.Postgres, table, column string, offset uint64) string {

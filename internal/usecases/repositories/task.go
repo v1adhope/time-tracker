@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/Masterminds/squirrel"
@@ -127,7 +128,7 @@ func (r *TaskRepo) GetReportSummaryTime(ctx context.Context, userID string, sort
 		}
 
 		if taskDTO.SummaryTime != nil {
-			task.SummaryTime = fmt.Sprintf("%dh%dm", int(taskDTO.SummaryTime.Hours()), int(taskDTO.SummaryTime.Minutes()))
+			task.SummaryTime = strings.TrimRight(taskDTO.SummaryTime.Round(time.Minute).String(), "0s")
 		}
 
 		tasks = append(tasks, task)
