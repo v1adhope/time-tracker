@@ -14,4 +14,5 @@ APP_POSTGRES_WITH_MIGRATION=true
 Use `.env` for migration
 
 ---
-- [ ] TODO: might be created root path for config and migration
+- [ ] TODO: might created root path for config and migration
+- [ ] TODO: might changed seeder for test time tasks

@@ -1,137 +1,18 @@
 package v1_test
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
-	"github.com/v1adhope/time-tracker/internal/configs"
-	v1 "github.com/v1adhope/time-tracker/internal/controllers/v1"
-	"github.com/v1adhope/time-tracker/internal/entities"
-	"github.com/v1adhope/time-tracker/internal/usecases"
-	"github.com/v1adhope/time-tracker/internal/usecases/repositories"
-	"github.com/v1adhope/time-tracker/pkg/logger"
-	"github.com/v1adhope/time-tracker/pkg/postgresql"
 )
 
-func prepare() (*postgresql.Postgres, *gin.Engine) {
-	cfg, err := configs.Build("../../../.env")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	appLog := logger.New(cfg.Logger.LogLevel)
-
-	mainCtx := context.Background()
-
-	postgres, err := postgresql.Build(mainCtx, cfg.Postgres)
-	if err != nil {
-		log.Fatal("can't get postgres pool")
-	}
-
-	postgres.Migrate("../../../migrations")
-
-	repos := repositories.New(postgres)
-
-	seeding(mainCtx, repos)
-
-	usecases := usecases.New(repos)
-
-	if err := v1.RegisterCustomValidations(); err != nil {
-		log.Fatal("can't register custom validations")
-	}
-
-	handler := gin.New()
-
-	v1.Handle(&v1.Router{
-		Handler:  handler,
-		Usecases: usecases,
-		Log:      appLog,
-	})
-
-	return postgres, handler
-}
-
-func seeding(ctx context.Context, repos *repositories.Repos) {
-	users := []entities.User{
-		{
-			Surname:        "Funk",
-			Name:           "Theresia",
-			Patronymic:     "Cummerata-Thompson",
-			Address:        "53636 Gabrielle Mount",
-			PassportNumber: "3333 333333",
-		},
-		{
-			Surname:        "Runolfsdottir",
-			Name:           "Violette",
-			Patronymic:     "Johns",
-			Address:        "52265 Parker Crossroad",
-			PassportNumber: "3333 666666",
-		},
-		{
-			Surname:        "McCullough",
-			Name:           "Jessie",
-			Patronymic:     "Waelchi",
-			Address:        "8020 Dach Pine",
-			PassportNumber: "3333 444444",
-		},
-		{
-			Surname:        "Rippin",
-			Name:           "Katrine",
-			Patronymic:     "Block",
-			Address:        "985 N Jefferson Street",
-			PassportNumber: "5555 124041",
-		},
-		{
-			Surname:        "Schulist",
-			Name:           "Kailee",
-			Patronymic:     "Fritsch",
-			Address:        "5303 Church View",
-			PassportNumber: "2515 692797",
-		},
-	}
-
-	for no, user := range users {
-		userWithID, _ := repos.User.Create(ctx, user)
-		users[no].ID = userWithID.ID
-	}
-
-	for i := 0; i < 3; i++ {
-		task, _ := repos.Task.Create(ctx, users[3].ID)
-		repos.Task.SetFinishedAt(ctx, task.ID)
-	}
-
-	for i := 0; i < 2; i++ {
-		repos.Task.Create(ctx, users[3].ID)
-	}
-
-	for i := 0; i < 4; i++ {
-		task, _ := repos.Task.Create(ctx, users[2].ID)
-		repos.Task.SetFinishedAt(ctx, task.ID)
-	}
-
-	for i := 0; i < 2; i++ {
-		repos.Task.Create(ctx, users[4].ID)
-	}
-}
-
-func getUserIDByOffset(driver *postgresql.Postgres, offset uint64) string {
-	id := ""
-	sql, args, _ := driver.Builder.Select("user_id").From("users").Limit(1).Offset(offset).ToSql()
-	driver.Pool.QueryRow(context.Background(), sql, args...).Scan(&id)
-
-	return id
-}
-
-func TestCreatePositive(t *testing.T) {
+func TestUserCreatePositive(t *testing.T) {
 	postgres, handler := prepare()
 	defer postgres.Close()
 
@@ -193,7 +74,7 @@ func TestCreatePositive(t *testing.T) {
 	}
 }
 
-func TestCreateNegative(t *testing.T) {
+func TestUserCreateNegative(t *testing.T) {
 	postgres, handler := prepare()
 	defer postgres.Close()
 
@@ -240,7 +121,7 @@ func TestCreateNegative(t *testing.T) {
 	}
 }
 
-func TestUpdatePositive(t *testing.T) {
+func TestUserUpdatePositive(t *testing.T) {
 	postgres, handler := prepare()
 	defer postgres.Close()
 
@@ -255,7 +136,7 @@ func TestUpdatePositive(t *testing.T) {
 
 	testCases := []user{
 		{
-			ID:             getUserIDByOffset(postgres, 0),
+			ID:             getUserID(postgres, 0),
 			Surname:        "Sporer",
 			Name:           "Lemuel",
 			Patronymic:     "Schultz",
@@ -263,7 +144,7 @@ func TestUpdatePositive(t *testing.T) {
 			PassportNumber: "4444 664656",
 		},
 		{
-			ID:             getUserIDByOffset(postgres, 1),
+			ID:             getUserID(postgres, 1),
 			Surname:        "Reilly",
 			Name:           "Clara",
 			Patronymic:     "Mohr",
@@ -271,7 +152,7 @@ func TestUpdatePositive(t *testing.T) {
 			PassportNumber: "4424 664656",
 		},
 		{
-			ID:             getUserIDByOffset(postgres, 2),
+			ID:             getUserID(postgres, 2),
 			Surname:        "Farrell",
 			Name:           "Nona",
 			Patronymic:     "Wyman-Lockman",
@@ -290,7 +171,7 @@ func TestUpdatePositive(t *testing.T) {
 	}
 }
 
-func TestUpdateNegative(t *testing.T) {
+func TestUserUpdateNegative(t *testing.T) {
 	postgres, handler := prepare()
 	defer postgres.Close()
 
@@ -311,7 +192,7 @@ func TestUpdateNegative(t *testing.T) {
 		{
 			key: "wrong passport number (5 numbers instead 6)",
 			input: user{
-				id:             getUserIDByOffset(postgres, 0),
+				id:             getUserID(postgres, 0),
 				Surname:        "Sporer",
 				Name:           "Lemuel",
 				Patronymic:     "Schultz",
@@ -323,7 +204,7 @@ func TestUpdateNegative(t *testing.T) {
 		{
 			key: "wrong passport number (number constist not number)",
 			input: user{
-				id:             getUserIDByOffset(postgres, 1),
+				id:             getUserID(postgres, 1),
 				Surname:        "Reilly",
 				Name:           "Clara",
 				Patronymic:     "Mohr",
@@ -335,7 +216,7 @@ func TestUpdateNegative(t *testing.T) {
 		{
 			key: "wrong passport number (serial consist 5 numbers insetad 4)",
 			input: user{
-				id:             getUserIDByOffset(postgres, 2),
+				id:             getUserID(postgres, 2),
 				Surname:        "Farrell",
 				Name:           "Nona",
 				Patronymic:     "Wyman-Lockman",
@@ -359,7 +240,7 @@ func TestUpdateNegative(t *testing.T) {
 		{
 			key: "passport number has already exist",
 			input: user{
-				id:             getUserIDByOffset(postgres, 4),
+				id:             getUserID(postgres, 4),
 				Surname:        "Farrell",
 				Name:           "Nona",
 				Patronymic:     "Wyman-Lockman",
@@ -392,7 +273,7 @@ func TestUpdateNegative(t *testing.T) {
 	}
 }
 
-func TestDeletePositive(t *testing.T) {
+func TestUserDeletePositive(t *testing.T) {
 	postgres, handler := prepare()
 	defer postgres.Close()
 
@@ -400,13 +281,13 @@ func TestDeletePositive(t *testing.T) {
 		id string
 	}{
 		{
-			id: getUserIDByOffset(postgres, 0),
+			id: getUserID(postgres, 0),
 		},
 		{
-			id: getUserIDByOffset(postgres, 1),
+			id: getUserID(postgres, 1),
 		},
 		{
-			id: getUserIDByOffset(postgres, 2),
+			id: getUserID(postgres, 2),
 		},
 	}
 
@@ -419,7 +300,7 @@ func TestDeletePositive(t *testing.T) {
 	}
 }
 
-func TestDeleteNegative(t *testing.T) {
+func TestUserDeleteNegative(t *testing.T) {
 	postgres, handler := prepare()
 	defer postgres.Close()
 
@@ -464,7 +345,7 @@ func TestDeleteNegative(t *testing.T) {
 	}
 }
 
-func TestGetAllPositive(t *testing.T) {
+func TestUserGetAllPositive(t *testing.T) {
 	postgres, handler := prepare()
 	defer postgres.Close()
 
@@ -641,7 +522,7 @@ func TestGetAllPositive(t *testing.T) {
 	}
 }
 
-func TestGetAllNegative(t *testing.T) {
+func TestUserGetAllNegative(t *testing.T) {
 	postgres, handler := prepare()
 	defer postgres.Close()
 
@@ -731,7 +612,7 @@ func TestGetAllNegative(t *testing.T) {
 	}
 }
 
-func TestInfoPositive(t *testing.T) {
+func TestUserInfoPositive(t *testing.T) {
 	postgres, handler := prepare()
 	defer postgres.Close()
 
@@ -784,7 +665,7 @@ func TestInfoPositive(t *testing.T) {
 	}
 }
 
-func TestInfoNegative(t *testing.T) {
+func TestUserInfoNegative(t *testing.T) {
 	postgres, handler := prepare()
 	defer postgres.Close()
 

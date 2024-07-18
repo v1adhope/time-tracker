@@ -30,6 +30,8 @@ type startTaskReqParams struct {
 // @summary Start task
 // @param userId path string true "User id (uuid)"
 // @response 201
+// @response 204 "There's no user with that id"
+// @response 400
 // @response 500
 // @router /tasks/start/{userId} [post]
 func (r *taskRouter) Start(c *gin.Context) {
@@ -57,7 +59,8 @@ type endTaskReqParams struct {
 // @summary End task
 // @param id path string true "Task id (uuid)"
 // @response 200
-// @response 204
+// @response 204 "There's no user with that id"
+// @response 400
 // @response 500
 // @router /tasks/end/{id} [patch]
 func (r *taskRouter) End(c *gin.Context) {

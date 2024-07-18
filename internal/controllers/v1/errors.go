@@ -49,6 +49,7 @@ func errorHandler(log logger.Logger) gin.HandlerFunc {
 				case errors.Is(ginErr.Err, entities.ErrorUserDoesNotExistWithThatPassportInfoExeption):
 					log.Debug(ginErr.Err)
 					abortWithStatusMSG(c, http.StatusBadRequest, ginErr.Err.Error())
+					return
 				}
 			}
 
