@@ -5,7 +5,6 @@ type Task struct {
 	CreatedAt  string `json:"createdAt"`
 	FinishedAt string `json:"finishedAt,omitempty"`
 	UserID     string `json:"userId"`
-	// Description string    `json:"description"`
 }
 
 type TaskSummary struct {

@@ -12,6 +12,3 @@ Usage
 APP_POSTGRES_WITH_MIGRATION=true
 ```
 Use `.env` for migration
-
----
-- [ ] TODO: might created root path for config and migration
