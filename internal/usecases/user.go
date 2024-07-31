@@ -14,13 +14,13 @@ func NewUser(ur UserRepo) *UserUsecase {
 	return &UserUsecase{ur}
 }
 
-func (u *UserUsecase) Create(ctx context.Context, user entities.User) (entities.User, error) {
-	user, err := u.userRepo.Create(ctx, user)
+func (u *UserUsecase) Create(ctx context.Context, user entities.User) (string, error) {
+	id, err := u.userRepo.Create(ctx, user)
 	if err != nil {
-		return entities.User{}, err
+		return "", err
 	}
 
-	return user, nil
+	return id, nil
 }
 
 func (u *UserUsecase) Delete(ctx context.Context, id string) error {

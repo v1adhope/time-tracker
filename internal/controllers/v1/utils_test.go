@@ -23,12 +23,13 @@ func prepare() (*postgresql.Postgres, *gin.Engine) {
 
 	mainCtx := context.Background()
 
-	postgres, err := postgresql.Build(mainCtx, cfg.Postgres)
+	postgres, err := postgresql.Build(mainCtx, cfg.Postgres, "../../../migrations")
 	if err != nil {
 		log.Fatal("can't get postgres pool")
 	}
 
-	postgres.Migrate("../../../migrations")
+	postgres.MigrateDown()
+	postgres.MigrateUp()
 
 	repos := repositories.New(postgres)
 

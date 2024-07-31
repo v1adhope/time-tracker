@@ -16,7 +16,7 @@ import (
 func Run(cfg *configs.Config, log logger.Logger) error {
 	mainCtx := context.Background()
 
-	postgres, err := postgresql.Build(mainCtx, cfg.Postgres)
+	postgres, err := postgresql.Build(mainCtx, cfg.Postgres, "migrations")
 	if err != nil {
 		return err
 	}
@@ -24,7 +24,7 @@ func Run(cfg *configs.Config, log logger.Logger) error {
 	log.Info("postgres driver was succsesfully up")
 
 	if cfg.Postgres.WithMigrate {
-		if err := postgres.Migrate("migrations"); err != nil {
+		if err := postgres.MigrateUp(); err != nil {
 			return err
 		}
 		log.Info("postgres migration was succeeded")

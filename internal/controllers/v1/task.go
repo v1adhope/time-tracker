@@ -30,6 +30,7 @@ type startTaskReqParams struct {
 // @summary Start task
 // @param userId path string true "User id (uuid)"
 // @response 201
+// @header 201 {string} Location "Return /v1/tasks/summary-time/:userId resource"
 // @response 204 "There's no user with that id"
 // @response 400
 // @response 500
@@ -42,13 +43,14 @@ func (r *taskRouter) Start(c *gin.Context) {
 		return
 	}
 
-	task, err := r.taskUsecase.Start(c.Request.Context(), params.UserID)
-	if err != nil {
+	if err := r.taskUsecase.Start(c.Request.Context(), params.UserID); err != nil {
 		setAnyError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusCreated, task)
+	setTaskLocationHeader(c, params.UserID)
+
+	c.Status(http.StatusCreated)
 }
 
 type endTaskReqParams struct {
@@ -96,7 +98,7 @@ type summaryTimeReqQuery struct {
 // @param userId path string true "User id (uuid)"
 // @param startTime query string false "Range sorting. Accept RFC3339 format time"
 // @param endTime query string false "Range sorting. Accept RFC3339 format time"
-// @response 200
+// @response 200 {object} []entities.Task
 // @response 204
 // @response 400
 // @response 500

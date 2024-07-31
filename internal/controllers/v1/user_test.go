@@ -14,7 +14,9 @@ import (
 
 func TestUserCreatePositive(t *testing.T) {
 	postgres, handler := prepare()
-	defer postgres.Close()
+	t.Cleanup(func() {
+		postgres.Close()
+	})
 
 	type user struct {
 		Surname        string `json:"surname"`
@@ -58,25 +60,35 @@ func TestUserCreatePositive(t *testing.T) {
 				PassportNumber: "8888 666666",
 			},
 		},
+		{
+			key: "test allowed symbols case 4",
+			user: user{
+				Surname:        "Shana.,'han",
+				Name:           "Timoth y",
+				Patronymic:     "Jacobs-on",
+				Address:        "78510 Howard Street",
+				PassportNumber: "8888 667776",
+			},
+		},
 	}
 
 	for _, tc := range testCases {
-		bytesBody, _ := json.Marshal(&tc.user)
-		req, _ := http.NewRequest("POST", "/v1/users/", strings.NewReader(string(bytesBody)))
-		recorder := httptest.NewRecorder()
-		handler.ServeHTTP(recorder, req)
+		t.Run(tc.key, func(t *testing.T) {
+			bytesBody, _ := json.Marshal(&tc.user)
+			req, _ := http.NewRequest("POST", "/v1/users/", strings.NewReader(string(bytesBody)))
+			recorder := httptest.NewRecorder()
+			handler.ServeHTTP(recorder, req)
 
-		assert.Equal(t, http.StatusCreated, recorder.Code, tc.key)
-
-		user := user{}
-		json.NewDecoder(recorder.Body).Decode(&user)
-		assert.Equal(t, tc.user, user, tc.key)
+			assert.Equal(t, http.StatusCreated, recorder.Code, tc.key)
+		})
 	}
 }
 
 func TestUserCreateNegative(t *testing.T) {
 	postgres, handler := prepare()
-	defer postgres.Close()
+	t.Cleanup(func() {
+		postgres.Close()
+	})
 
 	type user struct {
 		Surname        string `json:"surname"`
@@ -109,21 +121,34 @@ func TestUserCreateNegative(t *testing.T) {
 				PassportNumber: "3333 333333",
 			},
 		},
+		{
+			key: "wrong name",
+			input: user{
+				Surname:        "Ondricka",
+				Name:           "Coby12",
+				Address:        "9312 Weber Neck",
+				PassportNumber: "3333 333333",
+			},
+		},
 	}
 
 	for _, tc := range testCases {
-		bytesBody, _ := json.Marshal(&tc.input)
-		req, _ := http.NewRequest("POST", "/v1/users/", strings.NewReader(string(bytesBody)))
-		recorder := httptest.NewRecorder()
-		handler.ServeHTTP(recorder, req)
+		t.Run(tc.key, func(t *testing.T) {
+			bytesBody, _ := json.Marshal(&tc.input)
+			req, _ := http.NewRequest("POST", "/v1/users/", strings.NewReader(string(bytesBody)))
+			recorder := httptest.NewRecorder()
+			handler.ServeHTTP(recorder, req)
 
-		assert.Equal(t, http.StatusBadRequest, recorder.Code, tc.key)
+			assert.Equal(t, http.StatusBadRequest, recorder.Code, tc.key)
+		})
 	}
 }
 
 func TestUserUpdatePositive(t *testing.T) {
 	postgres, handler := prepare()
-	defer postgres.Close()
+	t.Cleanup(func() {
+		postgres.Close()
+	})
 
 	type user struct {
 		ID             string `json:"-"`
@@ -162,18 +187,22 @@ func TestUserUpdatePositive(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		userJSON, _ := json.Marshal(&tc)
-		req, _ := http.NewRequest("PATCH", fmt.Sprintf("/v1/users/%s", tc.ID), strings.NewReader(string(userJSON)))
-		recorder := httptest.NewRecorder()
-		handler.ServeHTTP(recorder, req)
+		t.Run(tc.ID, func(t *testing.T) {
+			userJSON, _ := json.Marshal(&tc)
+			req, _ := http.NewRequest("PATCH", fmt.Sprintf("/v1/users/%s", tc.ID), strings.NewReader(string(userJSON)))
+			recorder := httptest.NewRecorder()
+			handler.ServeHTTP(recorder, req)
 
-		assert.Equal(t, http.StatusOK, recorder.Code, tc.ID)
+			assert.Equal(t, http.StatusOK, recorder.Code, tc.ID)
+		})
 	}
 }
 
 func TestUserUpdateNegative(t *testing.T) {
 	postgres, handler := prepare()
-	defer postgres.Close()
+	t.Cleanup(func() {
+		postgres.Close()
+	})
 
 	type user struct {
 		id             string
@@ -264,18 +293,22 @@ func TestUserUpdateNegative(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		bytesBody, _ := json.Marshal(&tc.input)
-		req, _ := http.NewRequest("PATCH", fmt.Sprintf("/v1/users/%s", tc.input.id), strings.NewReader(string(bytesBody)))
-		recorder := httptest.NewRecorder()
-		handler.ServeHTTP(recorder, req)
+		t.Run(tc.key, func(t *testing.T) {
+			bytesBody, _ := json.Marshal(&tc.input)
+			req, _ := http.NewRequest("PATCH", fmt.Sprintf("/v1/users/%s", tc.input.id), strings.NewReader(string(bytesBody)))
+			recorder := httptest.NewRecorder()
+			handler.ServeHTTP(recorder, req)
 
-		assert.Equal(t, tc.expectedCode, recorder.Code, tc.key)
+			assert.Equal(t, tc.expectedCode, recorder.Code, tc.key)
+		})
 	}
 }
 
 func TestUserDeletePositive(t *testing.T) {
 	postgres, handler := prepare()
-	defer postgres.Close()
+	t.Cleanup(func() {
+		postgres.Close()
+	})
 
 	testCases := []struct {
 		id string
@@ -337,17 +370,21 @@ func TestUserDeleteNegative(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		req, _ := http.NewRequest("DELETE", fmt.Sprintf("/v1/users/%s", tc.id), nil)
-		recorder := httptest.NewRecorder()
-		handler.ServeHTTP(recorder, req)
+		t.Run(tc.key, func(t *testing.T) {
+			req, _ := http.NewRequest("DELETE", fmt.Sprintf("/v1/users/%s", tc.id), nil)
+			recorder := httptest.NewRecorder()
+			handler.ServeHTTP(recorder, req)
 
-		assert.Equal(t, tc.expectedCode, recorder.Code, tc.key)
+			assert.Equal(t, tc.expectedCode, recorder.Code, tc.key)
+		})
 	}
 }
 
 func TestUserGetAllPositive(t *testing.T) {
 	postgres, handler := prepare()
-	defer postgres.Close()
+	t.Cleanup(func() {
+		defer postgres.Close()
+	})
 
 	type user struct {
 		Surname        string `json:"surname"`
@@ -357,6 +394,7 @@ func TestUserGetAllPositive(t *testing.T) {
 		PassportNumber string `json:"passportNumber"`
 	}
 	type input struct {
+		byID             string
 		bySurname        string
 		byName           string
 		byPatronymic     string
@@ -497,34 +535,54 @@ func TestUserGetAllPositive(t *testing.T) {
 				},
 			},
 		},
+		{
+			key: "find by id",
+			input: input{
+				byID: getUserID(postgres, 0),
+			},
+			expected: []user{
+				{
+					Surname:        "Funk",
+					Name:           "Theresia",
+					Patronymic:     "Cummerata-Thompson",
+					Address:        "53636 Gabrielle Mount",
+					PassportNumber: "3333 333333",
+				},
+			},
+		},
 	}
 
 	for _, tc := range testCases {
-		query := url.Values{}
+		t.Run(tc.key, func(t *testing.T) {
+			query := url.Values{}
 
-		query.Set("limit", tc.input.limit)
-		query.Set("offset", tc.input.offset)
-		query.Set("surname", tc.input.bySurname)
-		query.Set("name", tc.input.byName)
-		query.Set("patronymic", tc.input.byPatronymic)
-		query.Set("address", tc.input.byAddress)
-		query.Set("passportNumber", tc.input.byPassportNumber)
+			query.Set("limit", tc.input.limit)
+			query.Set("offset", tc.input.offset)
+			query.Set("surname", tc.input.bySurname)
+			query.Set("name", tc.input.byName)
+			query.Set("patronymic", tc.input.byPatronymic)
+			query.Set("address", tc.input.byAddress)
+			query.Set("passportNumber", tc.input.byPassportNumber)
+			query.Set("id", tc.input.byID)
 
-		req, _ := http.NewRequest("GET", fmt.Sprintf("/v1/users/?%s", query.Encode()), nil)
-		recorder := httptest.NewRecorder()
-		handler.ServeHTTP(recorder, req)
+			req, _ := http.NewRequest("GET", fmt.Sprintf("/v1/users/?%s", query.Encode()), nil)
+			recorder := httptest.NewRecorder()
+			handler.ServeHTTP(recorder, req)
 
-		assert.Equal(t, http.StatusOK, recorder.Code, tc.key)
+			assert.Equal(t, http.StatusOK, recorder.Code, tc.key)
 
-		users := make([]user, 0)
-		json.NewDecoder(recorder.Body).Decode(&users)
-		assert.Equal(t, tc.expected, users, tc.key)
+			users := make([]user, 0)
+			json.NewDecoder(recorder.Body).Decode(&users)
+			assert.Equal(t, tc.expected, users, tc.key)
+		})
 	}
 }
 
 func TestUserGetAllNegative(t *testing.T) {
 	postgres, handler := prepare()
-	defer postgres.Close()
+	t.Cleanup(func() {
+		defer postgres.Close()
+	})
 
 	type input struct {
 		bySurname        string
@@ -594,27 +652,31 @@ func TestUserGetAllNegative(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		query := url.Values{}
+		t.Run(tc.key, func(t *testing.T) {
+			query := url.Values{}
 
-		query.Set("limit", tc.input.limit)
-		query.Set("offset", tc.input.offset)
-		query.Set("surname", tc.input.bySurname)
-		query.Set("name", tc.input.byName)
-		query.Set("patronymic", tc.input.byPatronymic)
-		query.Set("address", tc.input.byAddress)
-		query.Set("passportNumber", tc.input.byPassportNumber)
+			query.Set("limit", tc.input.limit)
+			query.Set("offset", tc.input.offset)
+			query.Set("surname", tc.input.bySurname)
+			query.Set("name", tc.input.byName)
+			query.Set("patronymic", tc.input.byPatronymic)
+			query.Set("address", tc.input.byAddress)
+			query.Set("passportNumber", tc.input.byPassportNumber)
 
-		req, _ := http.NewRequest("GET", fmt.Sprintf("/v1/users/?%s", query.Encode()), nil)
-		recorder := httptest.NewRecorder()
-		handler.ServeHTTP(recorder, req)
+			req, _ := http.NewRequest("GET", fmt.Sprintf("/v1/users/?%s", query.Encode()), nil)
+			recorder := httptest.NewRecorder()
+			handler.ServeHTTP(recorder, req)
 
-		assert.Equal(t, tc.expectedCode, recorder.Code, tc.key)
+			assert.Equal(t, tc.expectedCode, recorder.Code, tc.key)
+		})
 	}
 }
 
 func TestUserInfoPositive(t *testing.T) {
 	postgres, handler := prepare()
-	defer postgres.Close()
+	t.Cleanup(func() {
+		defer postgres.Close()
+	})
 
 	type user struct {
 		Surname    string `json:"surname"`
@@ -648,26 +710,30 @@ func TestUserInfoPositive(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		quaery := url.Values{}
+		t.Run(tc.key, func(t *testing.T) {
+			quaery := url.Values{}
 
-		quaery.Set("passportSeries", tc.input.passportSeries)
-		quaery.Set("passportNumber", tc.input.passportNumber)
+			quaery.Set("passportSeries", tc.input.passportSeries)
+			quaery.Set("passportNumber", tc.input.passportNumber)
 
-		req, _ := http.NewRequest("GET", fmt.Sprintf("/v1/users/info?%s", quaery.Encode()), nil)
-		recorder := httptest.NewRecorder()
-		handler.ServeHTTP(recorder, req)
+			req, _ := http.NewRequest("GET", fmt.Sprintf("/v1/users/info?%s", quaery.Encode()), nil)
+			recorder := httptest.NewRecorder()
+			handler.ServeHTTP(recorder, req)
 
-		assert.Equal(t, http.StatusOK, recorder.Code, tc.key)
+			assert.Equal(t, http.StatusOK, recorder.Code, tc.key)
 
-		user := user{}
-		json.NewDecoder(recorder.Body).Decode(&user)
-		assert.Equal(t, tc.expected, user, tc.key)
+			user := user{}
+			json.NewDecoder(recorder.Body).Decode(&user)
+			assert.Equal(t, tc.expected, user, tc.key)
+		})
 	}
 }
 
 func TestUserInfoNegative(t *testing.T) {
 	postgres, handler := prepare()
-	defer postgres.Close()
+	t.Cleanup(func() {
+		defer postgres.Close()
+	})
 
 	type input struct {
 		passportSeries string
@@ -702,15 +768,17 @@ func TestUserInfoNegative(t *testing.T) {
 	}
 
 	for _, tc := range testCase {
-		quaery := url.Values{}
+		t.Run(tc.key, func(t *testing.T) {
+			quaery := url.Values{}
 
-		quaery.Set("passportSeries", tc.input.passportSeries)
-		quaery.Set("passportNumber", tc.input.passportNumber)
+			quaery.Set("passportSeries", tc.input.passportSeries)
+			quaery.Set("passportNumber", tc.input.passportNumber)
 
-		req, _ := http.NewRequest("GET", fmt.Sprintf("/v1/users/info?%s", quaery.Encode()), nil)
-		recorder := httptest.NewRecorder()
-		handler.ServeHTTP(recorder, req)
+			req, _ := http.NewRequest("GET", fmt.Sprintf("/v1/users/info?%s", quaery.Encode()), nil)
+			recorder := httptest.NewRecorder()
+			handler.ServeHTTP(recorder, req)
 
-		assert.Equal(t, http.StatusBadRequest, recorder.Code, tc.key)
+			assert.Equal(t, http.StatusBadRequest, recorder.Code, tc.key)
+		})
 	}
 }

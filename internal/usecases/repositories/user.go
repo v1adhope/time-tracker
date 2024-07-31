@@ -21,7 +21,7 @@ func NewUser(d *postgresql.Postgres) *UserRepo {
 	return &UserRepo{d}
 }
 
-func (r *UserRepo) Create(ctx context.Context, user entities.User) (entities.User, error) {
+func (r *UserRepo) Create(ctx context.Context, user entities.User) (string, error) {
 	valuesByColumns := squirrel.Eq{
 		"surname":         user.Surname,
 		"name":            user.Name,
@@ -35,20 +35,20 @@ func (r *UserRepo) Create(ctx context.Context, user entities.User) (entities.Use
 		Suffix("returning \"user_id\"").
 		ToSql()
 	if err != nil {
-		return entities.User{}, fmt.Errorf("repositories: user: create: tosql: %w", err)
+		return "", fmt.Errorf("repositories: user: create: tosql: %w", err)
 	}
 
 	if err := r.Driver.Pool.QueryRow(ctx, sql, args...).Scan(&user.ID); err != nil {
 		var pgErr *pgconn.PgError
 
 		if errors.As(err, &pgErr) && pgErr.ConstraintName == "users_passport_number_key" {
-			return entities.User{}, entities.ErrorUserHasAlreadyExistWithThatPassport
+			return "", entities.ErrorUserHasAlreadyExistWithThatPassport
 		}
 
-		return entities.User{}, fmt.Errorf("repositories: user: create: queryrow: %w", err)
+		return "", fmt.Errorf("repositories: user: create: queryrow: %w", err)
 	}
 
-	return user, nil
+	return user.ID, nil
 }
 
 func (r *UserRepo) Delete(ctx context.Context, id string) error {
@@ -164,6 +164,12 @@ func (r *UserRepo) GetAll(ctx context.Context, representation entities.UserRepre
 
 func (r *UserRepo) buildGetAllWhereFilterStatement(filter entities.UserFilter) squirrel.And {
 	statement := squirrel.And{}
+
+	if filter.ByID != "" {
+		statement = append(statement, squirrel.Eq{
+			"user_id": filter.ByID,
+		})
+	}
 
 	if filter.BySurname != "" {
 		parts := strings.Split(filter.BySurname, ":")

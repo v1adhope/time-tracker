@@ -7,7 +7,7 @@ import (
 )
 
 type User interface {
-	Create(ctx context.Context, user entities.User) (entities.User, error)
+	Create(ctx context.Context, user entities.User) (string, error)
 	Delete(ctx context.Context, id string) error
 	Update(ctx context.Context, user entities.User) error
 	GetAll(ctx context.Context, representation entities.UserRepresentation) ([]entities.User, error)
@@ -15,7 +15,7 @@ type User interface {
 }
 
 type UserRepo interface {
-	Create(ctx context.Context, user entities.User) (entities.User, error)
+	Create(ctx context.Context, user entities.User) (string, error)
 	Delete(ctx context.Context, id string) error
 	Update(ctx context.Context, user entities.User) error
 	GetAll(ctx context.Context, representation entities.UserRepresentation) ([]entities.User, error)
@@ -23,13 +23,13 @@ type UserRepo interface {
 }
 
 type Task interface {
-	Start(ctx context.Context, userID string) (entities.Task, error)
+	Start(ctx context.Context, userID string) error
 	End(ctx context.Context, id string) (string, error)
 	GetReportSummaryTime(ctx context.Context, userID string, sort entities.TaskSort) ([]entities.TaskSummary, error)
 }
 
 type TaskRepo interface {
-	Create(ctx context.Context, userID string) (entities.Task, error)
+	Create(ctx context.Context, userID string) (string, error)
 	SetFinishedAt(ctx context.Context, id string) (string, error)
 	GetReportSummaryTime(ctx context.Context, userID string, sort entities.TaskSort) ([]entities.TaskSummary, error)
 }

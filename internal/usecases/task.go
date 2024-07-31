@@ -14,13 +14,14 @@ func NewTask(tr TaskRepo) *TaskUsecase {
 	return &TaskUsecase{tr}
 }
 
-func (u *TaskUsecase) Start(ctx context.Context, userID string) (entities.Task, error) {
-	task, err := u.TaskRepo.Create(ctx, userID)
+func (u *TaskUsecase) Start(ctx context.Context, userID string) error {
+	// INFO: useless return, should refactor
+	_, err := u.TaskRepo.Create(ctx, userID)
 	if err != nil {
-		return entities.Task{}, err
+		return err
 	}
 
-	return task, nil
+	return nil
 }
 
 func (u *TaskUsecase) End(ctx context.Context, id string) (string, error) {

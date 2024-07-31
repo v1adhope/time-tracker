@@ -48,6 +48,8 @@ create table if not EXISTS users (
   constraint pk_users_user_id primary key(user_id)
 );
 
+create index if not exists index_users_passport_number on users(passport_number);
+
 create table if not exists tasks (
   task_id uuid default uuid6(),
   created_at timestamp not null,
@@ -57,3 +59,5 @@ create table if not exists tasks (
   constraint pk_tasks_task_id primary key(task_id),
   constraint fk_tasks_users_user_id foreign key(user_id) references users(user_id) on delete cascade
 );
+
+create index if not exists index_tasks_user_id on tasks(user_id);

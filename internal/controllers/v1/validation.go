@@ -3,6 +3,7 @@ package v1
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -26,6 +27,10 @@ func RegisterCustomValidations() error {
 	}
 
 	if err := v.RegisterValidation("passport", passport); err != nil {
+		return fmt.Errorf("v1: registerCustomValidations: registerValidation: sortTime: %w", err)
+	}
+
+	if err := v.RegisterValidation("alphabetical", alphabetical); err != nil {
 		return fmt.Errorf("v1: registerCustomValidations: registerValidation: sortTime: %w", err)
 	}
 
@@ -72,6 +77,17 @@ func passport(fl validator.FieldLevel) bool {
 		if err != nil {
 			return false
 		}
+	}
+
+	return true
+}
+
+func alphabetical(fl validator.FieldLevel) bool {
+	field := fl.Field().String()
+
+	isMatched, err := regexp.MatchString("^[A-Za-z ,.'-]+$", field)
+	if err != nil || !isMatched {
+		return false
 	}
 
 	return true

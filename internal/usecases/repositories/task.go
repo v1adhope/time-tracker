@@ -22,7 +22,7 @@ func NewTask(d *postgresql.Postgres) *TaskRepo {
 	return &TaskRepo{d}
 }
 
-func (r *TaskRepo) Create(ctx context.Context, userID string) (entities.Task, error) {
+func (r *TaskRepo) Create(ctx context.Context, userID string) (string, error) {
 	createdAt := time.Now().UTC().Format(time.RFC3339)
 
 	task := entities.Task{
@@ -40,20 +40,20 @@ func (r *TaskRepo) Create(ctx context.Context, userID string) (entities.Task, er
 		Suffix("returning \"task_id\"").
 		ToSql()
 	if err != nil {
-		return entities.Task{}, fmt.Errorf("repositories: task: create: tosql: %w", err)
+		return "", fmt.Errorf("repositories: task: create: tosql: %w", err)
 	}
 
 	if err := r.Driver.Pool.QueryRow(ctx, sql, args...).Scan(&task.ID); err != nil {
 		var pgErr *pgconn.PgError
 
 		if errors.As(err, &pgErr) && pgErr.ConstraintName == "fk_tasks_users_user_id" {
-			return entities.Task{}, entities.ErrorUsersDoesNotExist
+			return "", entities.ErrorUsersDoesNotExist
 		}
 
-		return entities.Task{}, fmt.Errorf("repositories: task: create: queryRow: %w", err)
+		return "", fmt.Errorf("repositories: task: create: queryRow: %w", err)
 	}
 
-	return task, nil
+	return task.ID, nil
 }
 
 func (r *TaskRepo) SetFinishedAt(ctx context.Context, id string) (string, error) {

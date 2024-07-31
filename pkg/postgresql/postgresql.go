@@ -22,11 +22,12 @@ type Config struct {
 }
 
 type Postgres struct {
-	Pool    *pgxpool.Pool
-	Builder squirrel.StatementBuilderType
+	Pool      *pgxpool.Pool
+	Builder   squirrel.StatementBuilderType
+	Migration *migrate.Migrate
 }
 
-func Build(ctx context.Context, cfg Config) (*Postgres, error) {
+func Build(ctx context.Context, cfg Config, migrationPath string) (*Postgres, error) {
 	connString := fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?%s",
 		cfg.User,
@@ -39,35 +40,39 @@ func Build(ctx context.Context, cfg Config) (*Postgres, error) {
 
 	pool, err := pgxpool.New(ctx, connString)
 	if err != nil {
-		return nil, fmt.Errorf("postgresql: new: %w", err)
+		return nil, fmt.Errorf("postgresql: pool: new: %w", err)
 	}
 
 	if err := pool.Ping(ctx); err != nil {
-		return nil, fmt.Errorf("postgresql: ping: %w", err)
+		return nil, fmt.Errorf("postgresql: pool: ping: %w", err)
 	}
 
 	builder := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
 
-	return &Postgres{pool, builder}, nil
+	migrate, err := migrate.New(fmt.Sprintf("file://%s", migrationPath), connString)
+	if err != nil {
+		return nil, fmt.Errorf("postgresql: migrate: new: %w", err)
+	}
+
+	return &Postgres{pool, builder, migrate}, nil
 }
 
 func (p *Postgres) Close() {
 	p.Pool.Close()
+	p.Migration.Close()
 }
 
-func (p *Postgres) Migrate(path string) error {
-	m, err := migrate.New(fmt.Sprintf("file://%s", path), p.Pool.Config().ConnString())
-	if err != nil {
-		return fmt.Errorf("postgresql: migrate: new: %w", err)
-	}
-	defer m.Close()
-
-	if err := m.Down(); err != migrate.ErrNoChange && err != nil {
-		return fmt.Errorf("postgresql: migrate: down: %w", err)
-	}
-
-	if err := m.Up(); err != migrate.ErrNoChange && err != nil {
+func (p *Postgres) MigrateUp() error {
+	if err := p.Migration.Up(); err != nil && err != migrate.ErrNoChange {
 		return fmt.Errorf("postgresql: migrate: up: %w", err)
+	}
+
+	return nil
+}
+
+func (p *Postgres) MigrateDown() error {
+	if err := p.Migration.Down(); err != nil && err != migrate.ErrNoChange {
+		return fmt.Errorf("postgresql: migrate: down: %w", err)
 	}
 
 	return nil

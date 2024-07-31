@@ -32,7 +32,7 @@ func Handle(router *Router) {
 
 	v1 := router.Handler.Group("/v1")
 
-	v1.Use(errorHandler(router.Log))
+	v1.Use(trackingHandler(router.Log), errorHandler(router.Log))
 	{
 		handleUser(&userRouter{
 			handler:     v1,

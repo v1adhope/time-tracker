@@ -12,7 +12,9 @@ type Config struct {
 
 type Logger interface {
 	Info(msg string)
+	Track(resource, ip string, status int)
 	Debug(err error)
+	Error(err error)
 }
 
 type Log struct {
@@ -48,6 +50,18 @@ func (l *Log) Info(msg string) {
 	l.Logger.Info().Msg(msg)
 }
 
+func (l *Log) Track(resource, ip string, status int) {
+	l.Logger.Info().
+		Str("resource", resource).
+		Str("ip", ip).
+		Int("status", status).
+		Send()
+}
+
 func (l *Log) Debug(err error) {
 	l.Logger.Debug().Err(err).Send()
+}
+
+func (l *Log) Error(err error) {
+	l.Logger.Error().Err(err).Send()
 }

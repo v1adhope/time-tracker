@@ -1,12 +1,12 @@
 package entities
 
 type User struct {
-	ID             string `json:"id,omitempty"`
-	Surname        string `json:"surname"`
-	Name           string `json:"name"`
-	Patronymic     string `json:"patronymic"`
-	Address        string `json:"address"`
-	PassportNumber string `json:"passportNumber,omitempty"`
+	ID             string `json:"id" example:"1ef4f189-7b2a-6740-a609-370ed63a9fc7"`
+	Surname        string `json:"surname" example:"Funk"`
+	Name           string `json:"name" example:"Theresia"`
+	Patronymic     string `json:"patronymic" example:"Cummerata-Thompson"`
+	Address        string `json:"address" example:"53636 Gabrielle Mount"`
+	PassportNumber string `json:"passportNumber" example:"3333 333333"`
 }
 
 type UserPagination struct {
@@ -15,6 +15,7 @@ type UserPagination struct {
 }
 
 type UserFilter struct {
+	ByID             string
 	BySurname        string
 	ByName           string
 	ByPatronymic     string

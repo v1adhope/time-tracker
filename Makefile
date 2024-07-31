@@ -11,11 +11,14 @@ docs:
 test:
 	go test ./... --race
 
-testByName:
+test-by-name:
 	go test --race -run ${name} ./...
 
-run: docs test build
+run: docs build
 	./.bin/app
 
-force:
-	migrate -path migrations -database "postgres://rat:@localhost:5432/time_tracker?sslmode=disable" force 1
+migrate-force:
+	migrate -path migrations -database "postgres://rat:@localhost:5432/time_tracker?sslmode=disable" force ${v}
+
+migrate-down:
+	migrate -path migrations -database "postgres://rat:@localhost:5432/time_tracker?sslmode=disable" down

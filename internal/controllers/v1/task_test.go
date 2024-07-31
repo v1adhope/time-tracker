@@ -13,7 +13,9 @@ import (
 
 func TestTaskStartPositive(t *testing.T) {
 	postgres, handler := prepare()
-	defer postgres.Close()
+	t.Cleanup(func() {
+		defer postgres.Close()
+	})
 
 	testCases := []struct {
 		key    string
@@ -34,17 +36,21 @@ func TestTaskStartPositive(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		req, _ := http.NewRequest("POST", fmt.Sprintf("/v1/tasks/start/%s", tc.userID), nil)
-		recorder := httptest.NewRecorder()
-		handler.ServeHTTP(recorder, req)
+		t.Run(tc.key, func(t *testing.T) {
+			req, _ := http.NewRequest("POST", fmt.Sprintf("/v1/tasks/start/%s", tc.userID), nil)
+			recorder := httptest.NewRecorder()
+			handler.ServeHTTP(recorder, req)
 
-		assert.Equal(t, http.StatusCreated, recorder.Code, tc.key)
+			assert.Equal(t, http.StatusCreated, recorder.Code, tc.key)
+		})
 	}
 }
 
 func TestTaskStartNegative(t *testing.T) {
 	postgres, handler := prepare()
-	defer postgres.Close()
+	t.Cleanup(func() {
+		defer postgres.Close()
+	})
 
 	testCases := []struct {
 		key          string
@@ -69,17 +75,21 @@ func TestTaskStartNegative(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		req, _ := http.NewRequest("POST", fmt.Sprintf("/v1/tasks/start/%s", tc.userID), nil)
-		recorder := httptest.NewRecorder()
-		handler.ServeHTTP(recorder, req)
+		t.Run(tc.key, func(t *testing.T) {
+			req, _ := http.NewRequest("POST", fmt.Sprintf("/v1/tasks/start/%s", tc.userID), nil)
+			recorder := httptest.NewRecorder()
+			handler.ServeHTTP(recorder, req)
 
-		assert.Equal(t, tc.expectedCode, recorder.Code, tc.key)
+			assert.Equal(t, tc.expectedCode, recorder.Code, tc.key)
+		})
 	}
 }
 
 func TestTaskEndPositive(t *testing.T) {
 	postgres, handler := prepare()
-	defer postgres.Close()
+	t.Cleanup(func() {
+		defer postgres.Close()
+	})
 
 	testCases := []struct {
 		key    string
@@ -100,17 +110,21 @@ func TestTaskEndPositive(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		req, _ := http.NewRequest("PATCH", fmt.Sprintf("/v1/tasks/end/%s", tc.userID), nil)
-		recorder := httptest.NewRecorder()
-		handler.ServeHTTP(recorder, req)
+		t.Run(tc.key, func(t *testing.T) {
+			req, _ := http.NewRequest("PATCH", fmt.Sprintf("/v1/tasks/end/%s", tc.userID), nil)
+			recorder := httptest.NewRecorder()
+			handler.ServeHTTP(recorder, req)
 
-		assert.Equal(t, http.StatusOK, recorder.Code, tc.key)
+			assert.Equal(t, http.StatusOK, recorder.Code, tc.key)
+		})
 	}
 }
 
 func TestTaskEndNegative(t *testing.T) {
 	postgres, handler := prepare()
-	defer postgres.Close()
+	t.Cleanup(func() {
+		defer postgres.Close()
+	})
 
 	testCases := []struct {
 		key          string
@@ -135,17 +149,21 @@ func TestTaskEndNegative(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		req, _ := http.NewRequest("PATCH", fmt.Sprintf("/v1/tasks/end/%s", tc.userID), nil)
-		recorder := httptest.NewRecorder()
-		handler.ServeHTTP(recorder, req)
+		t.Run(tc.key, func(t *testing.T) {
+			req, _ := http.NewRequest("PATCH", fmt.Sprintf("/v1/tasks/end/%s", tc.userID), nil)
+			recorder := httptest.NewRecorder()
+			handler.ServeHTTP(recorder, req)
 
-		assert.Equal(t, tc.expectedCode, recorder.Code, tc.key)
+			assert.Equal(t, tc.expectedCode, recorder.Code, tc.key)
+		})
 	}
 }
 
 func TestTaskSummaryTimePositive(t *testing.T) {
 	postgres, handler := prepare()
-	defer postgres.Close()
+	t.Cleanup(func() {
+		defer postgres.Close()
+	})
 
 	type input struct {
 		id        string
@@ -291,27 +309,31 @@ func TestTaskSummaryTimePositive(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		query := url.Values{}
+		t.Run(tc.key, func(t *testing.T) {
+			query := url.Values{}
 
-		query.Set("startTime", tc.input.startTime)
-		query.Set("endTime", tc.input.endTime)
+			query.Set("startTime", tc.input.startTime)
+			query.Set("endTime", tc.input.endTime)
 
-		req, _ := http.NewRequest("GET", fmt.Sprintf("/v1/tasks/summary-time/%s?%s", tc.input.id, query.Encode()), nil)
-		recorder := httptest.NewRecorder()
-		handler.ServeHTTP(recorder, req)
+			req, _ := http.NewRequest("GET", fmt.Sprintf("/v1/tasks/summary-time/%s?%s", tc.input.id, query.Encode()), nil)
+			recorder := httptest.NewRecorder()
+			handler.ServeHTTP(recorder, req)
 
-		assert.Equal(t, http.StatusOK, recorder.Code, tc.key)
+			assert.Equal(t, http.StatusOK, recorder.Code, tc.key)
 
-		tasks := make([]task, 0)
-		json.NewDecoder(recorder.Body).Decode(&tasks)
+			tasks := make([]task, 0)
+			json.NewDecoder(recorder.Body).Decode(&tasks)
 
-		assert.Equal(t, tc.expected, tasks, tc.key)
+			assert.Equal(t, tc.expected, tasks, tc.key)
+		})
 	}
 }
 
 func TestTaskSummaryTimeNegative(t *testing.T) {
 	postgres, handler := prepare()
-	defer postgres.Close()
+	t.Cleanup(func() {
+		postgres.Close()
+	})
 
 	type input struct {
 		id        string
@@ -373,15 +395,17 @@ func TestTaskSummaryTimeNegative(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		query := url.Values{}
+		t.Run(tc.key, func(t *testing.T) {
+			query := url.Values{}
 
-		query.Set("startTime", tc.input.startTime)
-		query.Set("endTime", tc.input.endTime)
+			query.Set("startTime", tc.input.startTime)
+			query.Set("endTime", tc.input.endTime)
 
-		req, _ := http.NewRequest("GET", fmt.Sprintf("/v1/tasks/summary-time/%s?%s", tc.input.id, query.Encode()), nil)
-		recorder := httptest.NewRecorder()
-		handler.ServeHTTP(recorder, req)
+			req, _ := http.NewRequest("GET", fmt.Sprintf("/v1/tasks/summary-time/%s?%s", tc.input.id, query.Encode()), nil)
+			recorder := httptest.NewRecorder()
+			handler.ServeHTTP(recorder, req)
 
-		assert.Equal(t, tc.expectedCode, recorder.Code, tc.key)
+			assert.Equal(t, tc.expectedCode, recorder.Code, tc.key)
+		})
 	}
 }

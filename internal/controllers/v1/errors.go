@@ -53,7 +53,7 @@ func errorHandler(log logger.Logger) gin.HandlerFunc {
 				}
 			}
 
-			log.Debug(ginErr.Err)
+			log.Error(ginErr.Err)
 			c.AbortWithStatus(http.StatusTeapot)
 			return
 		}

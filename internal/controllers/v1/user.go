@@ -26,10 +26,10 @@ func handleUser(router *userRouter) {
 }
 
 type createUserReq struct {
-	Surname        string `json:"surname" binding:"required" example:"Bode"`
-	Name           string `json:"name" binding:"required" example:"Rogers"`
-	Patronymic     string `json:"patronymic" binding:"required" example:"Robertovich"`
-	Address        string `json:"address" binding:"required" example:"1123 Ola Brook"`
+	Surname        string `json:"surname" binding:"required,alphabetical,max=255" example:"Bode"`
+	Name           string `json:"name" binding:"required,alphabetical,max=255" example:"Rogers"`
+	Patronymic     string `json:"patronymic" binding:"required,alphabetical,max=255" example:"Robertovich"`
+	Address        string `json:"address" binding:"required,ascii,max=255" example:"1123 Ola Brook"`
 	PassportNumber string `json:"passportNumber" binding:"required,passport" example:"6666 666666"`
 }
 
@@ -37,7 +37,8 @@ type createUserReq struct {
 // @summary Create user
 // @accept json
 // @param user body createUserReq true "User request model"
-// @response 201 {object} entities.User
+// @response 201
+// @header 201 {string} Location "Return /v1/users/?id=id resource"
 // @response 400
 // @response 500
 // @router /users [post]
@@ -49,7 +50,7 @@ func (r *userRouter) Create(c *gin.Context) {
 		return
 	}
 
-	user, err := r.userUsecase.Create(c.Request.Context(), entities.User{
+	id, err := r.userUsecase.Create(c.Request.Context(), entities.User{
 		Surname:        req.Surname,
 		Name:           req.Name,
 		Patronymic:     req.Patronymic,
@@ -61,7 +62,9 @@ func (r *userRouter) Create(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, user)
+	setUserLocationHeader(c, id)
+
+	c.Status(http.StatusCreated)
 }
 
 type deleteUserReqParams struct {
@@ -145,6 +148,7 @@ func (r *userRouter) Update(c *gin.Context) {
 }
 
 type allUserQuery struct {
+	ID             string `form:"id" binding:"omitempty,uuid" exmaple:"ef4f145-727e-6b60-ae1e-393b41b8e97b"`
 	Surname        string `form:"surname" binding:"omitempty,filterstring"`
 	Name           string `form:"name" binding:"omitempty,filterstring"`
 	Patronymic     string `form:"patronymic" binding:"omitempty,filterstring"`
@@ -157,13 +161,14 @@ type allUserQuery struct {
 
 // @tags users
 // @summary Get all users
+// @param id query string false "Find by id (uuid)"
 // @param limit query uint64 false "Pagination control"
 // @param offset query uint64 false "Pagination control"
 // @param surname query string false "Custom type consitst operation:value. Allowed operations eq, ilike"
 // @param name query string false "Custom type consitst operation:value. Allowed operations eq, ilike"
 // @param address query string false "Custom type consitst operation:value. Allowed operations eq, ilike"
 // @param passportNumber query string false "Custom type consitst operation:value. Allowed operations eq, ilike"
-// @response 200
+// @response 200 {object} []entities.User
 // @response 204 "No any users by this request"
 // @response 400
 // @response 500
@@ -182,6 +187,7 @@ func (r *userRouter) All(c *gin.Context) {
 			Offset: query.Offset,
 		},
 		Filter: entities.UserFilter{
+			ByID:             query.ID,
 			BySurname:        query.Surname,
 			ByName:           query.Name,
 			ByPatronymic:     query.Patronymic,
@@ -206,7 +212,7 @@ type infoUserQuery struct {
 // @summary Info endpoint
 // @param passportSeries query string true "Should be number len=4"
 // @param passportNumber query string true "Should be number len=6"
-// @response 200 "Consist empty user"
+// @response 200 {object} entities.User "Might consist empty user"
 // @response 400
 // @response 500
 // @router /users/info [get]
